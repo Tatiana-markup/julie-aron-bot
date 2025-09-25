@@ -4,28 +4,28 @@ const express = require('express');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
+// команда /start
 bot.start((ctx) => {
-  ctx.reply('Привіт 👋 Це бот Julie & Aron, тепер я живу на Railway 🚂');
+  ctx.reply('Привіт 👋 Це бот Julie & Aron, я вже на Railway!');
 });
 
 const app = express();
 
-// це дуже важливо! middleware має відповідати
+// middleware для парсингу json (Telegram надсилає JSON)
 app.use(express.json());
 
-// підключаємо webhook
-app.use(bot.webhookCallback('/webhook'));
-
-// реєструємо webhook у Telegram
-bot.telegram.setWebhook(`${process.env.WEBHOOK_URL}/webhook`);
-
-// тестовий маршрут для перевірки
-app.get('/', (req, res) => {
-  res.send('✅ Bot is running');
+// webhook маршрут
+app.post('/webhook', (req, res) => {
+  bot.handleUpdate(req.body, res);
 });
 
-// Railway слухає порт
+// тестовий маршрут
+app.get('/', (req, res) => {
+  res.send('Bot is running 🚀');
+});
+
+// слухаємо порт
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log(`🚀 Server started on port ${PORT}`);
+  console.log(`Server started on port ${PORT}`);
 });
