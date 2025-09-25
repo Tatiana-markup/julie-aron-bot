@@ -5,30 +5,25 @@ const express = require('express');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 // Команда /start
-bot.start((ctx) => {
-  ctx.reply('Привіт 👋 Це бот Julie & Aron, я вже на Railway!');
-});
+bot.start((ctx) => ctx.reply('Привіт 👋 Це бот Julie & Aron, тепер точно працюю 🚀'));
 
 const app = express();
+app.use(express.json()); // важливо!
 
-// Telegram присилає JSON — обов’язково!
-app.use(express.json());
-
-// ✅ Правильний webhook endpoint
+// Webhook endpoint
 app.post('/webhook', (req, res) => {
-  bot.handleUpdate(req.body, res).catch(err => {
-    console.error('Update error:', err);
-    res.status(500).send('Error');
-  });
+  bot.handleUpdate(req.body, res)
+    .catch(err => {
+      console.error('Update error:', err);
+      res.sendStatus(500);
+    });
 });
 
-// Тестовий маршрут (щоб перевіряти браузером)
-app.get('/', (req, res) => {
-  res.send('Bot is running 🚀');
-});
+// Тестовий GET
+app.get('/', (req, res) => res.send('Bot is running ✅'));
 
-// Слухаємо порт
+// Запуск сервера
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log(`✅ Server started on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
