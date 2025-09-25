@@ -3,35 +3,29 @@ const { Telegraf } = require('telegraf');
 const express = require('express');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
+
+bot.start((ctx) => {
+  ctx.reply('Привіт 👋 Це бот Julie & Aron, тепер я живу на Railway 🚂');
+});
+
 const app = express();
 
-// Обов’язково!
+// це дуже важливо! middleware має відповідати
 app.use(express.json());
 
-// Команда /start
-bot.start((ctx) => {
-  ctx.reply('Привіт 👋 Це бот Julie & Aron, я працюю через Railway!');
-});
+// підключаємо webhook
+app.use(bot.webhookCallback('/webhook'));
 
-// Обробка webhook
-app.post('/webhook', (req, res) => {
-  bot.handleUpdate(req.body, res)
-    .then(() => {
-      if (!res.headersSent) res.sendStatus(200);
-    })
-    .catch(err => {
-      console.error('Помилка обробки апдейту:', err);
-      if (!res.headersSent) res.sendStatus(500);
-    });
-});
+// реєструємо webhook у Telegram
+bot.telegram.setWebhook(`${process.env.WEBHOOK_URL}/webhook`);
 
-// Тестовий маршрут
+// тестовий маршрут для перевірки
 app.get('/', (req, res) => {
-  res.send('Bot is alive 🚀');
+  res.send('✅ Bot is running');
 });
 
-// Запуск сервера
+// Railway слухає порт
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log('Server started on port', PORT);
+  console.log(`🚀 Server started on port ${PORT}`);
 });
