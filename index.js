@@ -8,21 +8,21 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const translations = {
   de: {
     welcome: 'Willkommen bei Julie & Aron 🌸',
-    order: '🛒 Bestellen',
+    order: '🛒 Bestellen für 63 €',
     payment: '💳 Zahlungsbedingungen',
     shipping: '📦 Lieferbedingungen',
     questions: '❓ Fragen'
   },
   en: {
     welcome: 'Welcome to Julie & Aron 🌸',
-    order: '🛒 Order now',
+    order: '🛒 Order for €63',
     payment: '💳 Payment terms',
     shipping: '📦 Shipping terms',
     questions: '❓ Questions'
   },
   ru: {
     welcome: 'Добро пожаловать в Julie & Aron 🌸',
-    order: '🛒 Заказать',
+    order: '🛒 Заказать за 63 €',
     payment: '💳 Условия оплаты',
     shipping: '📦 Условия доставки',
     questions: '❓ Вопросы'
@@ -35,7 +35,7 @@ const userLanguage = {};
 // Старт → вибір мови
 bot.start((ctx) => {
   ctx.reply(
-    'Привіт 👋 Обери мову / Choose language / Выберите язык:',
+    'Здравствуйте 👋 Пожалуйста, выберите язык / Hi 👋 Please choose a language / Hallo 👋 Bitte wählen Sie eine Sprache',
     Markup.inlineKeyboard([
       [Markup.button.callback('🇩🇪 Deutsch', 'lang_de')],
       [Markup.button.callback('🇬🇧 English', 'lang_en')],
