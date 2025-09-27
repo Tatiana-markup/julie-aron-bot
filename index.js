@@ -14,13 +14,18 @@ const translations = {
     questions: '❓ Fragen'
   },
   en: {
-    welcome: '💎 Your chance to own an unforgettable fragrance
-      Instead of €600 — only €63 for a set of three luxurious scents:
-      ✨ Red Crystal (like Baccarat Rouge 540) — the energy of desire in every note.
-      🌸 Rive Droite (like Fleur Narcotic) — elegance and lightness for every day.
-      🔥 Nossi (exclusive creation) — a fragrance designed to impress.
-      Includes 150 ml + 15 ml testers.
-      🔐 Only 20 sets — exclusivity that disappears before your eyes.',
+    welcome: `
+💎 *Your chance to own an unforgettable fragrance*
+
+Instead of *€600* — only *€63* for a set of three luxurious scents:
+
+✨ *Red Crystal* (like Baccarat Rouge 540) — the energy of desire in every note.  
+🌸 *Rive Droite* (like Fleur Narcotic) — elegance and lightness for every day.  
+🔥 *Nossi* (exclusive creation) — a fragrance designed to impress.  
+
+Includes *150 ml + 15 ml testers*.  
+🔐 Only *20 sets* — exclusivity that disappears before your eyes.
+    `,
     order: '🛒 Order for €63',
     payment: '💳 Payment terms',
     shipping: '📦 Shipping terms',
@@ -57,14 +62,15 @@ bot.action(['lang_de', 'lang_en', 'lang_ru'], (ctx) => {
   let lang = ctx.match[0].split('_')[1]; // de, en, ru
   userLanguage[ctx.from.id] = lang;
 
-  ctx.reply(translations[lang].welcome,
-    Markup.inlineKeyboard([
+  ctx.reply(translations[lang].welcome, {
+    parse_mode: 'Markdown',
+    ...Markup.inlineKeyboard([
       [Markup.button.callback(translations[lang].order, 'order')],
       [Markup.button.callback(translations[lang].payment, 'payment')],
       [Markup.button.callback(translations[lang].shipping, 'shipping')],
       [Markup.button.callback(translations[lang].questions, 'questions')]
     ])
-  );
+  });
 });
 
 // Демо-обробка кнопок
@@ -72,7 +78,7 @@ bot.action(['order', 'payment', 'shipping', 'questions'], (ctx) => {
   ctx.answerCbQuery();
 
   const lang = userLanguage[ctx.from.id] || 'en'; // за замовчуванням англійська
-  ctx.reply(`👉 [${translations[lang][ctx.match[0]]}] (ще треба розписати сценарій)`);
+  ctx.reply(`👉 ${translations[lang][ctx.match[0]]}`);
 });
 
 // Express-сервер для Railway
