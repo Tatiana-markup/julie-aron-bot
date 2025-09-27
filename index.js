@@ -14,7 +14,13 @@ const translations = {
     questions: '❓ Fragen'
   },
   en: {
-    welcome: 'Welcome to Julie & Aron 🌸',
+    welcome: '💎 Your chance to own an unforgettable fragrance
+      Instead of €600 — only €63 for a set of three luxurious scents:
+      ✨ Red Crystal (like Baccarat Rouge 540) — the energy of desire in every note.
+      🌸 Rive Droite (like Fleur Narcotic) — elegance and lightness for every day.
+      🔥 Nossi (exclusive creation) — a fragrance designed to impress.
+      Includes 150 ml + 15 ml testers.
+      🔐 Only 20 sets — exclusivity that disappears before your eyes.',
     order: '🛒 Order for €63',
     payment: '💳 Payment terms',
     shipping: '📦 Shipping terms',
