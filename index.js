@@ -3,7 +3,7 @@ const { Telegraf, Markup } = require('telegraf');
 const express = require('express');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
-const ADMIN_USERNAME = 'tata_048'; // куди шлемо замовлення
+const ADMIN_ID = 477219279; // <-- твій Telegram ID
 const CHANNEL_ID = '@Julii_und_Aron';
 
 // --- Тексти для вітання ---
@@ -243,7 +243,7 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
   `;
 
   // шлемо адміну
-  ctx.telegram.sendMessage(`@${ADMIN_USERNAME}`, orderSummary);
+    ctx.telegram.sendMessage(ADMIN_ID, orderSummary);
 
   // фейковий лінк
   ctx.reply('🔗 [Натисніть тут, щоб "оплатити"](https://example.com/test-payment)', { parse_mode: 'Markdown' });
