@@ -3,8 +3,10 @@ const { Telegraf, Markup } = require('telegraf');
 const express = require('express');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
+const ADMIN_USERNAME = 'tata_048'; // куди шлемо замовлення
+const CHANNEL_ID = '@Julii_und_Aron';
 
-// --- Переклади ---
+// --- Тексти для вітання ---
 const translations = {
   de: {
     welcome: `
@@ -62,54 +64,57 @@ Includes *150 ml + 15 ml testers*.
   }
 };
 
-// --- Переклади для форми ---
+// --- Тексти для форми ---
 const formTranslations = {
   de: {
     subscribe: '👉 Abonniere den Kanal, um 10% Rabatt zu erhalten und das Set für 63 € zu bekommen',
     subscribeBtn: '🔔 Abonnieren',
     checkSub: '✅ Ich habe abonniert',
+    notSubscribed: '❌ Sie haben den Kanal noch nicht abonniert. Bitte zuerst abonnieren 👆',
     buyNoSub: '💳 Ohne Abo für 70 € kaufen',
     askName: 'Bitte geben Sie Ihren vollständigen Namen ein:',
     askAddress: 'Bitte geben Sie Ihre Lieferadresse ein (Land, Stadt, PLZ, Straße/Haus/Wohnung):',
-    askEmail: 'Bitte geben Sie Ihre E-Mail-Adresse ein (für Quittung/Tracking-Nummer):',
+    askEmail: 'Bitte geben Sie Ihre E-Mail-Adresse ein:',
     askPhone: 'Bitte geben Sie Ihre Telefonnummer ein:',
     askPayment: 'Wählen Sie die Zahlungsmethode:',
-    payPaypal: '💳 PayPal',
-    paySepa: '🏦 SEPA-Überweisung'
+    payPaypal: '💳 PayPal (TEST)',
+    paySepa: '🏦 SEPA-Überweisung (TEST)'
   },
   en: {
     subscribe: '👉 Subscribe to the channel to get 10% off and grab the set for €63',
     subscribeBtn: '🔔 Subscribe',
-    checkSub: '✅ I have subscribed',
+    checkSub: '✅ I subscribed',
+    notSubscribed: '❌ You are not subscribed yet. Please subscribe first 👆',
     buyNoSub: '💳 Buy without subscription for €70',
     askName: 'Please enter your full name:',
     askAddress: 'Please enter your delivery address (Country, City, Zip, Street/House/Apartment):',
-    askEmail: 'Please enter your email (for receipt/tracking number):',
+    askEmail: 'Please enter your email:',
     askPhone: 'Please enter your phone number:',
     askPayment: 'Choose payment method:',
-    payPaypal: '💳 PayPal',
-    paySepa: '🏦 SEPA Transfer'
+    payPaypal: '💳 PayPal (TEST)',
+    paySepa: '🏦 SEPA Transfer (TEST)'
   },
   ru: {
     subscribe: '👉 Подпишитесь на канал, чтобы получить скидку 10% и забрать набор за 63 €',
     subscribeBtn: '🔔 Подписаться',
     checkSub: '✅ Я подписался',
+    notSubscribed: '❌ Вы ещё не подписались. Пожалуйста, сначала подпишитесь 👆',
     buyNoSub: '💳 Купить без подписки за 70 €',
     askName: 'Введите имя и фамилию:',
     askAddress: 'Введите адрес доставки (Страна, Город, Индекс, Улица/дом/кв.):',
-    askEmail: 'Введите ваш email (для чека/трек-номера):',
+    askEmail: 'Введите ваш email:',
     askPhone: 'Введите ваш телефон:',
     askPayment: 'Выберите метод оплаты:',
-    payPaypal: '💳 PayPal',
-    paySepa: '🏦 SEPA-перевод'
+    payPaypal: '💳 PayPal (ТЕСТ)',
+    paySepa: '🏦 SEPA-перевод (ТЕСТ)'
   }
 };
 
-// --- Сховища ---
+// --- Тимчасові сховища ---
 const userLanguage = {};
 const userOrders = {};
 
-// Старт → вибір мови
+// --- Старт ---
 bot.start((ctx) => {
   ctx.reply(
     'Здравствуйте 👋 Пожалуйста, выберите язык / Hi 👋 Please choose a language / Hallo 👋 Bitte wählen Sie eine Sprache',
@@ -121,7 +126,7 @@ bot.start((ctx) => {
   );
 });
 
-// Обробка вибору мови
+// --- Вибір мови ---
 bot.action(['lang_de', 'lang_en', 'lang_ru'], (ctx) => {
   ctx.answerCbQuery();
   let lang = ctx.match[0].split('_')[1]; // de, en, ru
@@ -138,17 +143,17 @@ bot.action(['lang_de', 'lang_en', 'lang_ru'], (ctx) => {
   });
 });
 
-// --- Сценарій для кнопки Order ---
-const CHANNEL_ID = '@Julii_und_Aron';
-
+// --- Сценарій Order ---
 bot.action('order', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   try {
     const member = await ctx.telegram.getChatMember(CHANNEL_ID, ctx.from.id);
     if (['member', 'administrator', 'creator'].includes(member.status)) {
+      // ✅ Підписаний → форма
       ctx.reply(formTranslations[lang].askName);
       userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
     } else {
+      // ❌ Не підписаний
       ctx.reply(formTranslations[lang].subscribe, Markup.inlineKeyboard([
         [Markup.button.url(formTranslations[lang].subscribeBtn, 'https://t.me/Julii_und_Aron')],
         [Markup.button.callback(formTranslations[lang].checkSub, 'check_sub')],
@@ -161,7 +166,7 @@ bot.action('order', async (ctx) => {
   }
 });
 
-// --- Перевірка повторної підписки ---
+// --- Перевірка підписки вручну ---
 bot.action('check_sub', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   try {
@@ -170,7 +175,7 @@ bot.action('check_sub', async (ctx) => {
       ctx.reply(formTranslations[lang].askName);
       userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
     } else {
-      ctx.reply('❌ Ви ще не підписались. Будь ласка, підпишіться 👆');
+      ctx.reply(formTranslations[lang].notSubscribed);
     }
   } catch (err) {
     console.error(err);
@@ -178,17 +183,18 @@ bot.action('check_sub', async (ctx) => {
   }
 });
 
-// --- Купівля без підписки ---
+// --- Без підписки (70 €) ---
 bot.action('order_no_sub', (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   ctx.reply(formTranslations[lang].askName);
   userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 70 } };
 });
 
-// --- Обробка форми ---
+// --- Форма ---
 bot.on('text', (ctx) => {
   const order = userOrders[ctx.from.id];
   if (!order) return;
+
   const lang = order.lang;
 
   switch (order.step) {
@@ -218,7 +224,39 @@ bot.on('text', (ctx) => {
   }
 });
 
-// --- Express-сервер ---
+// --- Оплата (тестова заглушка) ---
+bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
+  const order = userOrders[ctx.from.id];
+  if (!order) return;
+  const lang = order.lang;
+
+  order.data.payment = ctx.match[0] === 'pay_paypal' ? 'PayPal (TEST)' : 'SEPA (TEST)';
+
+  const orderSummary = `
+📦 Нове замовлення (${order.data.price} €)
+
+👤 Name: ${order.data.name}
+🏠 Address: ${order.data.address}
+✉️ Email: ${order.data.email}
+📱 Phone: ${order.data.phone}
+💳 Payment: ${order.data.payment}
+  `;
+
+  // шлемо адміну
+  ctx.telegram.sendMessage(`@${ADMIN_USERNAME}`, orderSummary);
+
+  // фейковий лінк
+  ctx.reply('🔗 [Натисніть тут, щоб "оплатити"](https://example.com/test-payment)', { parse_mode: 'Markdown' });
+
+  // імітуємо підтвердження
+  setTimeout(() => {
+    ctx.reply('✅ Оплата отримана! Ваше замовлення буде відправлено найближчим часом.');
+  }, 3000);
+
+  delete userOrders[ctx.from.id];
+});
+
+// --- Express для Railway ---
 const app = express();
 app.use(express.json());
 app.use(bot.webhookCallback('/webhook'));
