@@ -291,8 +291,6 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
 
   bot.telegram.sendMessage(ADMIN_ID, orderSummary);
 
-  ctx.reply('🔗 [Натисніть тут, щоб "оплатити"](https://example.com/test-payment)', { parse_mode: 'Markdown' });
-
   setTimeout(() => {
     ctx.reply(formTranslations[lang].successPayment);
   }, 3000);
