@@ -3,7 +3,7 @@ const { Telegraf, Markup } = require('telegraf');
 const express = require('express');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
-const ADMIN_ID = 477219279; // <-- твій Telegram ID
+const ADMIN_ID = 477219279; // твій Telegram ID
 const CHANNEL_ID = '@Julii_und_Aron';
 
 // --- Тексти для вітання ---
@@ -79,7 +79,13 @@ const formTranslations = {
     askPayment: 'Wählen Sie die Zahlungsmethode:',
     payPaypal: '💳 PayPal (TEST)',
     paySepa: '🏦 SEPA-Überweisung (TEST)',
-  successPayment: '✅ Zahlung erhalten.\nIhre Bestellung wird morgen versendet.\nDie Sendungsnummer erhalten Sie in diesem Chat.'
+    successPayment: '✅ Zahlung erhalten.\nIhre Bestellung wird morgen versendet.\nDie Sendungsnummer erhalten Sie in diesem Chat.',
+    errors: {
+      name: '❌ Bitte geben Sie einen gültigen vollständigen Namen ein.',
+      address: '❌ Bitte geben Sie eine gültige Adresse ein.',
+      email: '❌ Bitte geben Sie eine gültige E-Mail-Adresse ein.',
+      phone: '❌ Bitte geben Sie eine gültige Telefonnummer ein.'
+    }
   },
   en: {
     subscribe: '👉 Subscribe to the channel to get 10% off and grab the set for €63',
@@ -94,7 +100,13 @@ const formTranslations = {
     askPayment: 'Choose payment method:',
     payPaypal: '💳 PayPal (TEST)',
     paySepa: '🏦 SEPA Transfer (TEST)',
-    successPayment: '✅ Payment received.\nYour order will be shipped tomorrow.\nThe tracking number will be sent to this chat.'
+    successPayment: '✅ Payment received.\nYour order will be shipped tomorrow.\nThe tracking number will be sent to this chat.',
+    errors: {
+      name: '❌ Please enter a valid full name.',
+      address: '❌ Please enter a valid address.',
+      email: '❌ Please enter a valid email.',
+      phone: '❌ Please enter a valid phone number.'
+    }
   },
   ru: {
     subscribe: '👉 Подпишитесь на канал, чтобы получить скидку 10% и забрать набор за 63 €',
@@ -109,13 +121,31 @@ const formTranslations = {
     askPayment: 'Выберите метод оплаты:',
     payPaypal: '💳 PayPal (ТЕСТ)',
     paySepa: '🏦 SEPA-перевод (ТЕСТ)',
-    successPayment: '✅ Оплата получена.\nВаш заказ будет отправлен завтра.\nТрек-номер придёт в этот чат.'
+    successPayment: '✅ Оплата получена.\nВаш заказ будет отправлен завтра.\nТрек-номер придёт в этот чат.',
+    errors: {
+      name: '❌ Введите корректные имя и фамилию.',
+      address: '❌ Введите корректный адрес.',
+      email: '❌ Введите корректный email.',
+      phone: '❌ Введите корректный номер телефона.'
+    }
   }
 };
 
 // --- Тимчасові сховища ---
 const userLanguage = {};
 const userOrders = {};
+const userErrors = {}; // лічильник помилок
+
+// --- Валідація ---
+function validateInput(step, text) {
+  switch (step) {
+    case 'name': return text.split(' ').length >= 2;
+    case 'address': return text.length > 5;
+    case 'email': return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
+    case 'phone': return /^[\d+\-\s]{6,20}$/.test(text);
+    default: return true;
+  }
+}
 
 // --- Старт ---
 bot.start((ctx) => {
@@ -132,7 +162,7 @@ bot.start((ctx) => {
 // --- Вибір мови ---
 bot.action(['lang_de', 'lang_en', 'lang_ru'], (ctx) => {
   ctx.answerCbQuery();
-  let lang = ctx.match[0].split('_')[1]; // de, en, ru
+  let lang = ctx.match[0].split('_')[1];
   userLanguage[ctx.from.id] = lang;
 
   ctx.reply(translations[lang].welcome, {
@@ -146,17 +176,15 @@ bot.action(['lang_de', 'lang_en', 'lang_ru'], (ctx) => {
   });
 });
 
-// --- Сценарій Order ---
+// --- Order ---
 bot.action('order', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   try {
     const member = await ctx.telegram.getChatMember(CHANNEL_ID, ctx.from.id);
     if (['member', 'administrator', 'creator'].includes(member.status)) {
-      // ✅ Підписаний → форма
       ctx.reply(formTranslations[lang].askName);
       userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
     } else {
-      // ❌ Не підписаний
       ctx.reply(formTranslations[lang].subscribe, Markup.inlineKeyboard([
         [Markup.button.url(formTranslations[lang].subscribeBtn, 'https://t.me/Julii_und_Aron')],
         [Markup.button.callback(formTranslations[lang].checkSub, 'check_sub')],
@@ -169,7 +197,7 @@ bot.action('order', async (ctx) => {
   }
 });
 
-// --- Перевірка підписки вручну ---
+// --- Перевірка підписки ---
 bot.action('check_sub', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   try {
@@ -193,31 +221,47 @@ bot.action('order_no_sub', (ctx) => {
   userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 70 } };
 });
 
-// --- Форма ---
+// --- Обробка форми ---
 bot.on('text', (ctx) => {
   const order = userOrders[ctx.from.id];
   if (!order) return;
-
   const lang = order.lang;
+  const text = ctx.message.text;
+
+  if (!validateInput(order.step, text)) {
+    userErrors[ctx.from.id] = (userErrors[ctx.from.id] || 0) + 1;
+    ctx.reply(formTranslations[lang].errors[order.step]);
+
+    if (userErrors[ctx.from.id] >= 3) {
+      bot.telegram.sendMessage(
+        ADMIN_ID,
+        `⚠️ Пользователь ${ctx.from.id} трижды ошибся на шаге "${order.step}".\nПоследний ввод: "${text}"`
+      );
+      userErrors[ctx.from.id] = 0;
+    }
+    return;
+  }
+
+  userErrors[ctx.from.id] = 0;
 
   switch (order.step) {
     case 'name':
-      order.data.name = ctx.message.text;
+      order.data.name = text;
       order.step = 'address';
       ctx.reply(formTranslations[lang].askAddress);
       break;
     case 'address':
-      order.data.address = ctx.message.text;
+      order.data.address = text;
       order.step = 'email';
       ctx.reply(formTranslations[lang].askEmail);
       break;
     case 'email':
-      order.data.email = ctx.message.text;
+      order.data.email = text;
       order.step = 'phone';
       ctx.reply(formTranslations[lang].askPhone);
       break;
     case 'phone':
-      order.data.phone = ctx.message.text;
+      order.data.phone = text;
       order.step = 'payment';
       ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
         [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
@@ -227,7 +271,7 @@ bot.on('text', (ctx) => {
   }
 });
 
-// --- Оплата (тестова заглушка) ---
+// --- Оплата (тест) ---
 bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
   const order = userOrders[ctx.from.id];
   if (!order) return;
@@ -245,15 +289,13 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
 💳 Payment: ${order.data.payment}
   `;
 
-  // шлемо адміну
-    ctx.telegram.sendMessage(ADMIN_ID, orderSummary);
+  bot.telegram.sendMessage(ADMIN_ID, orderSummary);
 
-  // фейковий лінк
   ctx.reply('🔗 [Натисніть тут, щоб "оплатити"](https://example.com/test-payment)', { parse_mode: 'Markdown' });
 
-    setTimeout(() => {
-      ctx.reply(formTranslations[lang].successPayment);
-    }, 3000);
+  setTimeout(() => {
+    ctx.reply(formTranslations[lang].successPayment);
+  }, 3000);
 
   delete userOrders[ctx.from.id];
 });
