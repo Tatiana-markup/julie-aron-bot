@@ -6,7 +6,11 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const ADMIN_ID = 477219279; // твій Telegram ID
 const CHANNEL_ID = '@Julii_und_Aron';
 
-// --- Тексти для вітання ---
+// --- Хранилище заказов и стока ---
+let orders = [];
+let stock = 20;
+
+// --- Переводы ---
 const translations = {
   de: {
     welcome: `
@@ -14,17 +18,14 @@ const translations = {
 
 Statt *600 €* — nur *63 €* für ein Set aus drei luxuriösen Düften:
 
-✨ *Red Crystal* (wie Baccarat Rouge 540) — die Energie der Begierde in jeder Note.  
-🌸 *Rive Droite* (wie Fleur Narcotic) — Eleganz und Leichtigkeit für jeden Tag.  
-🔥 *Nossi* (exklusives Parfum) — ein Duft, der beeindruckt.  
+✨ *Red Crystal* (wie Baccarat Rouge 540)  
+🌸 *Rive Droite* (wie Fleur Narcotic)  
+🔥 *Nossi* (exklusives Parfum)  
 
 Im Set: *150 ml + 15 ml Proben*.  
 🔐 Nur *20 Sets* — Exklusivität, die im Nu verschwindet.
     `,
-    order: '🛒 Bestellen für 63 €',
-    payment: '💳 Zahlungsbedingungen',
-    shipping: '📦 Lieferbedingungen',
-    questions: '❓ Fragen'
+    order: '🛒 Bestellen für 63 €'
   },
   en: {
     welcome: `
@@ -32,17 +33,14 @@ Im Set: *150 ml + 15 ml Proben*.
 
 Instead of *€600* — only *€63* for a set of three luxurious scents:
 
-✨ *Red Crystal* (like Baccarat Rouge 540) — the energy of desire in every note.  
-🌸 *Rive Droite* (like Fleur Narcotic) — elegance and lightness for every day.  
-🔥 *Nossi* (exclusive creation) — a fragrance designed to impress.  
+✨ *Red Crystal* (like Baccarat Rouge 540)  
+🌸 *Rive Droite* (like Fleur Narcotic)  
+🔥 *Nossi* (exclusive creation)  
 
 Includes *150 ml + 15 ml testers*.  
 🔐 Only *20 sets* — exclusivity that disappears before your eyes.
     `,
-    order: '🛒 Order for €63',
-    payment: '💳 Payment terms',
-    shipping: '📦 Shipping terms',
-    questions: '❓ Questions'
+    order: '🛒 Order for €63'
   },
   ru: {
     welcome: `
@@ -50,104 +48,22 @@ Includes *150 ml + 15 ml testers*.
 
 Вместо *600 €* — всего *63 €* за набор из трёх роскошных ароматов:
 
-✨ *Red Crystal* (как Baccarat Rouge 540) — энергия желания в каждой ноте.  
-🌸 *Rive Droite* (как Fleur Narcotic) — утончённость и лёгкость на каждый день.  
-🔥 *Nossi* (авторский эксклюзив) — аромат, созданный поражать.  
+✨ *Red Crystal* (как Baccarat Rouge 540)  
+🌸 *Rive Droite* (как Fleur Narcotic)  
+🔥 *Nossi* (авторский эксклюзив)  
 
 В комплекте: *150 мл + 15 мл пробников*.  
 🔐 Всего *20 наборов* — эксклюзивность, исчезающая на глазах.
     `,
-    order: '🛒 Заказать за 63 €',
-    payment: '💳 Условия оплаты',
-    shipping: '📦 Условия доставки',
-    questions: '❓ Вопросы'
+    order: '🛒 Заказать за 63 €'
   }
 };
 
-// --- Тексти для форми ---
-const formTranslations = {
-  de: {
-    subscribe: '👉 Abonniere den Kanal, um 10% Rabatt zu erhalten und das Set für 63 € zu bekommen',
-    subscribeBtn: '🔔 Abonnieren',
-    checkSub: '✅ Ich habe abonniert',
-    notSubscribed: '❌ Sie haben den Kanal noch nicht abonniert. Bitte zuerst abonnieren 👆',
-    buyNoSub: '💳 Ohne Abo für 70 € kaufen',
-    askName: 'Bitte geben Sie Ihren vollständigen Namen ein:',
-    askAddress: 'Bitte geben Sie Ihre Lieferadresse ein (Land, Stadt, PLZ, Straße/Haus/Wohnung):',
-    askEmail: 'Bitte geben Sie Ihre E-Mail-Adresse ein:',
-    askPhone: 'Bitte geben Sie Ihre Telefonnummer ein:',
-    askPayment: 'Wählen Sie die Zahlungsmethode:',
-    payPaypal: '💳 PayPal (TEST)',
-    paySepa: '🏦 SEPA-Überweisung (TEST)',
-    successPayment: '✅ Zahlung erhalten.\nIhre Bestellung wird morgen versendet.\nDie Sendungsnummer erhalten Sie in diesem Chat.',
-    errors: {
-      name: '❌ Bitte geben Sie einen gültigen vollständigen Namen ein.',
-      address: '❌ Bitte geben Sie eine gültige Adresse ein.',
-      email: '❌ Bitte geben Sie eine gültige E-Mail-Adresse ein.',
-      phone: '❌ Bitte geben Sie eine gültige Telefonnummer ein.'
-    }
-  },
-  en: {
-    subscribe: '👉 Subscribe to the channel to get 10% off and grab the set for €63',
-    subscribeBtn: '🔔 Subscribe',
-    checkSub: '✅ I subscribed',
-    notSubscribed: '❌ You are not subscribed yet. Please subscribe first 👆',
-    buyNoSub: '💳 Buy without subscription for €70',
-    askName: 'Please enter your full name:',
-    askAddress: 'Please enter your delivery address (Country, City, Zip, Street/House/Apartment):',
-    askEmail: 'Please enter your email:',
-    askPhone: 'Please enter your phone number:',
-    askPayment: 'Choose payment method:',
-    payPaypal: '💳 PayPal (TEST)',
-    paySepa: '🏦 SEPA Transfer (TEST)',
-    successPayment: '✅ Payment received.\nYour order will be shipped tomorrow.\nThe tracking number will be sent to this chat.',
-    errors: {
-      name: '❌ Please enter a valid full name.',
-      address: '❌ Please enter a valid address.',
-      email: '❌ Please enter a valid email.',
-      phone: '❌ Please enter a valid phone number.'
-    }
-  },
-  ru: {
-    subscribe: '👉 Подпишитесь на канал, чтобы получить скидку 10% и забрать набор за 63 €',
-    subscribeBtn: '🔔 Подписаться',
-    checkSub: '✅ Я подписался',
-    notSubscribed: '❌ Вы ещё не подписались. Пожалуйста, сначала подпишитесь 👆',
-    buyNoSub: '💳 Купить без подписки за 70 €',
-    askName: 'Введите имя и фамилию:',
-    askAddress: 'Введите адрес доставки (Страна, Город, Индекс, Улица/дом/кв.):',
-    askEmail: 'Введите ваш email:',
-    askPhone: 'Введите ваш телефон:',
-    askPayment: 'Выберите метод оплаты:',
-    payPaypal: '💳 PayPal (ТЕСТ)',
-    paySepa: '🏦 SEPA-перевод (ТЕСТ)',
-    successPayment: '✅ Оплата получена.\nВаш заказ будет отправлен завтра.\nТрек-номер придёт в этот чат.',
-    errors: {
-      name: '❌ Введите корректные имя и фамилию.',
-      address: '❌ Введите корректный адрес.',
-      email: '❌ Введите корректный email.',
-      phone: '❌ Введите корректный номер телефона.'
-    }
-  }
-};
-
-// --- Тимчасові сховища ---
+// --- Языки пользователей ---
 const userLanguage = {};
 const userOrders = {};
-const userErrors = {}; // лічильник помилок
 
-// --- Валідація ---
-function validateInput(step, text) {
-  switch (step) {
-    case 'name': return text.split(' ').length >= 2;
-    case 'address': return text.length > 5;
-    case 'email': return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
-    case 'phone': return /^[\d+\-\s]{6,20}$/.test(text);
-    default: return true;
-  }
-}
-
-// --- Старт ---
+// --- Команда старт ---
 bot.start((ctx) => {
   ctx.reply(
     'Здравствуйте 👋 Пожалуйста, выберите язык / Hi 👋 Please choose a language / Hallo 👋 Bitte wählen Sie eine Sprache',
@@ -159,7 +75,7 @@ bot.start((ctx) => {
   );
 });
 
-// --- Вибір мови ---
+// --- Выбор языка ---
 bot.action(['lang_de', 'lang_en', 'lang_ru'], (ctx) => {
   ctx.answerCbQuery();
   let lang = ctx.match[0].split('_')[1];
@@ -168,134 +84,101 @@ bot.action(['lang_de', 'lang_en', 'lang_ru'], (ctx) => {
   ctx.reply(translations[lang].welcome, {
     parse_mode: 'Markdown',
     ...Markup.inlineKeyboard([
-      [Markup.button.callback(translations[lang].order, 'order')],
-      [Markup.button.callback(translations[lang].payment, 'payment')],
-      [Markup.button.callback(translations[lang].shipping, 'shipping')],
-      [Markup.button.callback(translations[lang].questions, 'questions')]
+      [Markup.button.callback(translations[lang].order, 'order')]
     ])
   });
 });
 
-// --- Order ---
-bot.action('order', async (ctx) => {
+// --- Обработка заказа (тест, без формы для краткости) ---
+bot.action('order', (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
-  try {
-    const member = await ctx.telegram.getChatMember(CHANNEL_ID, ctx.from.id);
-    if (['member', 'administrator', 'creator'].includes(member.status)) {
-      ctx.reply(formTranslations[lang].askName);
-      userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
-    } else {
-      ctx.reply(formTranslations[lang].subscribe, Markup.inlineKeyboard([
-        [Markup.button.url(formTranslations[lang].subscribeBtn, 'https://t.me/Julii_und_Aron')],
-        [Markup.button.callback(formTranslations[lang].checkSub, 'check_sub')],
-        [Markup.button.callback(formTranslations[lang].buyNoSub, 'order_no_sub')]
-      ]));
-    }
-  } catch (err) {
-    console.error(err);
-    ctx.reply('⚠️ Error checking subscription');
-  }
+  const newOrder = {
+    id: orders.length + 1,
+    userId: ctx.from.id,
+    lang,
+    status: 'NEW',
+    name: ctx.from.first_name || 'Unknown',
+    price: 63
+  };
+  orders.push(newOrder);
+
+  ctx.reply('✅ Ваш заказ принят. Пожалуйста, ожидайте подтверждения оплаты.');
+  bot.telegram.sendMessage(
+    ADMIN_ID,
+    `📦 Новый заказ #${newOrder.id}\n👤 ${newOrder.name}\nЦена: €${newOrder.price}\nСтатус: ${newOrder.status}`
+  );
 });
 
-// --- Перевірка підписки ---
-bot.action('check_sub', async (ctx) => {
-  const lang = userLanguage[ctx.from.id] || 'en';
-  try {
-    const member = await ctx.telegram.getChatMember(CHANNEL_ID, ctx.from.id);
-    if (['member', 'administrator', 'creator'].includes(member.status)) {
-      ctx.reply(formTranslations[lang].askName);
-      userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
-    } else {
-      ctx.reply(formTranslations[lang].notSubscribed);
-    }
-  } catch (err) {
-    console.error(err);
-    ctx.reply('⚠️ Error checking subscription');
-  }
+// --- Админ меню ---
+bot.command('admin', (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  ctx.reply('📋 Админ-меню', Markup.inlineKeyboard([
+    [Markup.button.callback('📦 Все заказы', 'admin_all')],
+    [Markup.button.callback('🟢 Оплаченные', 'admin_paid')],
+    [Markup.button.callback('🚚 Отправленные', 'admin_shipped')],
+    [Markup.button.callback('🔄 Установить остаток', 'admin_stock')],
+    [Markup.button.callback('📤 Разослать трек', 'admin_track')]
+  ]));
 });
 
-// --- Без підписки (70 €) ---
-bot.action('order_no_sub', (ctx) => {
-  const lang = userLanguage[ctx.from.id] || 'en';
-  ctx.reply(formTranslations[lang].askName);
-  userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 70 } };
+// --- Списки заказов ---
+function formatOrders(list) {
+  if (!list.length) return '❌ Заказов нет';
+  return list.map(o => `#${o.id} | ${o.name} | €${o.price} | ${o.status}`).join('\n');
+}
+
+bot.action('admin_all', (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  ctx.reply(formatOrders(orders));
+});
+bot.action('admin_paid', (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  ctx.reply(formatOrders(orders.filter(o => o.status === 'PAID')));
+});
+bot.action('admin_shipped', (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  ctx.reply(formatOrders(orders.filter(o => o.status === 'SHIPPED')));
 });
 
-// --- Обробка форми ---
-bot.on('text', (ctx) => {
-  const order = userOrders[ctx.from.id];
-  if (!order) return;
-  const lang = order.lang;
-  const text = ctx.message.text;
-
-  if (!validateInput(order.step, text)) {
-    userErrors[ctx.from.id] = (userErrors[ctx.from.id] || 0) + 1;
-    ctx.reply(formTranslations[lang].errors[order.step]);
-
-    if (userErrors[ctx.from.id] >= 3) {
-      bot.telegram.sendMessage(
-        ADMIN_ID,
-        `⚠️ Пользователь ${ctx.from.id} трижды ошибся на шаге "${order.step}".\nПоследний ввод: "${text}"`
-      );
-      userErrors[ctx.from.id] = 0;
-    }
-    return;
-  }
-
-  userErrors[ctx.from.id] = 0;
-
-  switch (order.step) {
-    case 'name':
-      order.data.name = text;
-      order.step = 'address';
-      ctx.reply(formTranslations[lang].askAddress);
-      break;
-    case 'address':
-      order.data.address = text;
-      order.step = 'email';
-      ctx.reply(formTranslations[lang].askEmail);
-      break;
-    case 'email':
-      order.data.email = text;
-      order.step = 'phone';
-      ctx.reply(formTranslations[lang].askPhone);
-      break;
-    case 'phone':
-      order.data.phone = text;
-      order.step = 'payment';
-      ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
-        [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
-        [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')]
-      ]));
-      break;
-  }
+// --- Установка остатка ---
+bot.action('admin_stock', (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  ctx.reply(`Сейчас в наличии: ${stock}\nВведи новое число (командой /setstock 15)`);
+});
+bot.command('setstock', (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  const parts = ctx.message.text.split(' ');
+  if (parts.length < 2) return ctx.reply('⚠️ Используй: /setstock 15');
+  stock = parseInt(parts[1]);
+  ctx.reply(`✅ Остаток обновлён: ${stock}`);
 });
 
-// --- Оплата (тест) ---
-bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
-  const order = userOrders[ctx.from.id];
-  if (!order) return;
-  const lang = order.lang;
+// --- Рассылка треков ---
+bot.action('admin_track', (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  ctx.reply('Введи команду в формате:\n/track orderId trackingNumber');
+});
+bot.command('track', (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  const parts = ctx.message.text.split(' ');
+  if (parts.length < 3) return ctx.reply('⚠️ Используй: /track 1 AA123456789DE');
+  const orderId = parseInt(parts[1]);
+  const tracking = parts[2];
 
-  order.data.payment = ctx.match[0] === 'pay_paypal' ? 'PayPal (TEST)' : 'SEPA (TEST)';
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return ctx.reply('❌ Заказ не найден');
 
-  const orderSummary = `
-📦 Новый заказ (${order.data.price} €)
+  order.status = 'SHIPPED';
+  order.tracking = tracking;
 
-👤 Name: ${order.data.name}
-🏠 Address: ${order.data.address}
-✉️ Email: ${order.data.email}
-📱 Phone: ${order.data.phone}
-💳 Payment: ${order.data.payment}
-  `;
+  // сообщение клиенту
+  let msg;
+  if (order.lang === 'de') msg = `📦 Ihre Bestellung wurde versendet.\nTracking-Nummer: ${tracking}`;
+  else if (order.lang === 'ru') msg = `📦 Ваш заказ был отправлен.\nТрек-номер: ${tracking}`;
+  else msg = `📦 Your order has been shipped.\nTracking number: ${tracking}`;
 
-  bot.telegram.sendMessage(ADMIN_ID, orderSummary);
-
-  setTimeout(() => {
-    ctx.reply(formTranslations[lang].successPayment);
-  }, 3000);
-
-  delete userOrders[ctx.from.id];
+  bot.telegram.sendMessage(order.userId, msg);
+  ctx.reply(`✅ Трек ${tracking} отправлен пользователю #${order.userId}`);
 });
 
 // --- Express для Railway ---
