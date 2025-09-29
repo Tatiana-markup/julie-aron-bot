@@ -236,7 +236,7 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
   order.data.payment = ctx.match[0] === 'pay_paypal' ? 'PayPal (TEST)' : 'SEPA (TEST)';
 
   const orderSummary = `
-📦 Нове замовлення (${order.data.price} €)
+📦 Новый заказ (${order.data.price} €)
 
 👤 Name: ${order.data.name}
 🏠 Address: ${order.data.address}
@@ -251,10 +251,9 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
   // фейковий лінк
   ctx.reply('🔗 [Натисніть тут, щоб "оплатити"](https://example.com/test-payment)', { parse_mode: 'Markdown' });
 
-  // імітуємо підтвердження
-  setTimeout(() => {
-    ctx.reply('✅ Оплата отримана! Ваше замовлення буде відправлено найближчим часом.');
-  }, 3000);
+    setTimeout(() => {
+      ctx.reply(formTranslations[lang].successPayment);
+    }, 3000);
 
   delete userOrders[ctx.from.id];
 });
