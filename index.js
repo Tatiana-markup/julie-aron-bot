@@ -79,6 +79,7 @@ const formTranslations = {
     askPayment: 'Wählen Sie die Zahlungsmethode:',
     payPaypal: '💳 PayPal (TEST)',
     paySepa: '🏦 SEPA-Überweisung (TEST)'
+  successPayment: '✅ Zahlung erhalten.\nIhre Bestellung wird morgen versendet.\nDie Sendungsnummer erhalten Sie in diesem Chat.'
   },
   en: {
     subscribe: '👉 Subscribe to the channel to get 10% off and grab the set for €63',
@@ -93,6 +94,7 @@ const formTranslations = {
     askPayment: 'Choose payment method:',
     payPaypal: '💳 PayPal (TEST)',
     paySepa: '🏦 SEPA Transfer (TEST)'
+    successPayment: '✅ Payment received.\nYour order will be shipped tomorrow.\nThe tracking number will be sent to this chat.'
   },
   ru: {
     subscribe: '👉 Подпишитесь на канал, чтобы получить скидку 10% и забрать набор за 63 €',
@@ -107,6 +109,7 @@ const formTranslations = {
     askPayment: 'Выберите метод оплаты:',
     payPaypal: '💳 PayPal (ТЕСТ)',
     paySepa: '🏦 SEPA-перевод (ТЕСТ)'
+    successPayment: '✅ Оплата получена.\nВаш заказ будет отправлен завтра.\nТрек-номер придёт в этот чат.'
   }
 };
 
