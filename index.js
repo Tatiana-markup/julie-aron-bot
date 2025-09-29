@@ -78,7 +78,7 @@ const formTranslations = {
     askPhone: 'Bitte geben Sie Ihre Telefonnummer ein:',
     askPayment: 'Wählen Sie die Zahlungsmethode:',
     payPaypal: '💳 PayPal (TEST)',
-    paySepa: '🏦 SEPA-Überweisung (TEST)'
+    paySepa: '🏦 SEPA-Überweisung (TEST)',
   successPayment: '✅ Zahlung erhalten.\nIhre Bestellung wird morgen versendet.\nDie Sendungsnummer erhalten Sie in diesem Chat.'
   },
   en: {
@@ -93,7 +93,7 @@ const formTranslations = {
     askPhone: 'Please enter your phone number:',
     askPayment: 'Choose payment method:',
     payPaypal: '💳 PayPal (TEST)',
-    paySepa: '🏦 SEPA Transfer (TEST)'
+    paySepa: '🏦 SEPA Transfer (TEST)',
     successPayment: '✅ Payment received.\nYour order will be shipped tomorrow.\nThe tracking number will be sent to this chat.'
   },
   ru: {
@@ -108,7 +108,7 @@ const formTranslations = {
     askPhone: 'Введите ваш телефон:',
     askPayment: 'Выберите метод оплаты:',
     payPaypal: '💳 PayPal (ТЕСТ)',
-    paySepa: '🏦 SEPA-перевод (ТЕСТ)'
+    paySepa: '🏦 SEPA-перевод (ТЕСТ)',
     successPayment: '✅ Оплата получена.\nВаш заказ будет отправлен завтра.\nТрек-номер придёт в этот чат.'
   }
 };
