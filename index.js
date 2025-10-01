@@ -150,40 +150,84 @@ bot.hears("📊 Остаток товара", (ctx) => {
   ctx.reply(`📊 Текущий остаток: ${stock}`);
 });
 
+// --- Обробка текстів ---
 bot.on("text", (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-  const state = adminState[ctx.from.id];
+  // Якщо адмін
+  if (ctx.from.id === ADMIN_ID) {
+    const state = adminState[ctx.from.id];
 
-  if (state === "update_stock") {
-    const newStock = parseInt(ctx.message.text);
-    if (!isNaN(newStock) && newStock >= 0) {
-      stock = newStock;
-      ctx.reply(`✅ Количество наборов обновлено: ${stock}`);
-    } else {
-      ctx.reply("❌ Введите число");
+    if (state === "update_stock") {
+      const newStock = parseInt(ctx.message.text);
+      if (!isNaN(newStock) && newStock >= 0) {
+        stock = newStock;
+        ctx.reply(`✅ Количество наборов обновлено: ${stock}`);
+      } else {
+        ctx.reply("❌ Введите число");
+      }
+      adminState[ctx.from.id] = null;
+      return;
     }
-    adminState[ctx.from.id] = null;
-  }
 
-  if (state === "enter_orderId") {
-    const orderId = ctx.message.text;
-    ctx.reply("Введите трек-номер:");
-    adminState[ctx.from.id] = { step: "enter_tracking", orderId };
-  }
+    if (state === "enter_orderId") {
+      const orderId = ctx.message.text;
+      ctx.reply("✏️ Введите трек-номер:");
+      adminState[ctx.from.id] = { step: "enter_tracking", orderId };
+      return;
+    }
 
-  if (state?.step === "enter_tracking") {
-    const trackNumber = ctx.message.text;
-    const order = orders.find(o => o.id === state.orderId);
+    if (state?.step === "enter_tracking") {
+      const trackNumber = ctx.message.text;
+      const order = orders.find(o => o.id === state.orderId);
       if (order) {
         bot.telegram.sendMessage(order.userId, `📦 Ваш заказ отправлен!\nТрек-номер: ${trackNumber}`);
-        ctx.reply(`✅ Трек-номер отправлен (${order.id})`);
-
-        // 🔻 Зменшуємо кількість товарів
-        if (stock > 0) stock -= 1;
+        ctx.reply(`✅ Трек-номер отправлен клиенту (${order.id})`);
       } else {
         ctx.reply("❌ Заказ не найден");
       }
-    adminState[ctx.from.id] = null;
+      adminState[ctx.from.id] = null;
+      return;
+    }
+  }
+
+  // Якщо користувач — йде логіка форми
+  const order = userOrders[ctx.from.id];
+  if (!order) return;
+  const lang = order.lang;
+  const text = ctx.message.text.trim();
+
+  switch (order.step) {
+    case 'name':
+      if (text.split(" ").length < 2) {
+        return ctx.reply("❌ Name must contain at least 2 words / Имя должно содержать минимум 2 слова / Ім’я має містити мінімум 2 слова");
+      }
+      order.data.name = text;
+      order.step = 'address';
+      ctx.reply(formTranslations[lang].askAddress);
+      break;
+    case 'address':
+      order.data.address = text;
+      order.step = 'email';
+      ctx.reply(formTranslations[lang].askEmail);
+      break;
+    case 'email':
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
+        return ctx.reply("❌ Invalid email / Неверный email / Невірна адреса пошти");
+      }
+      order.data.email = text;
+      order.step = 'phone';
+      ctx.reply(formTranslations[lang].askPhone);
+      break;
+    case 'phone':
+      if (!/^\+\d{7,15}$/.test(text)) {
+        return ctx.reply("❌ Invalid phone format. Example: +491234567890 / Неверный формат телефона. Пример: +79123456789 / Невірний формат телефону. Приклад: +380931234567");
+      }
+      order.data.phone = text;
+      order.step = 'payment';
+      ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
+        [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
+        [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')]
+      ]));
+      break;
   }
 });
 
