@@ -1,14 +1,13 @@
 const { Markup } = require("telegraf");
-let { ADMIN_ID, orders, stock, adminState } = require("./state");
+const { ADMIN_ID } = require("./state");
 
-function setupAdmin(bot) {
-  bot.start((ctx) => {
-    if (ctx.from.id === ADMIN_ID) {
-      return ctx.reply("👩‍💻 Панель администратора", Markup.keyboard([
-        ["📦 Список заказов", "✏️ Изменить количество товара"],
-        ["🚚 Отправить трек-номер", "📊 Остаток товара"],
-      ]).resize());
-    }
+function setupAdmin(bot, orders, stock, adminState) {
+  bot.hears("/admin", (ctx) => {
+    if (ctx.from.id !== ADMIN_ID) return;
+    ctx.reply("👩‍💻 Панель администратора", Markup.keyboard([
+      ["📦 Список заказов", "✏️ Изменить количество товара"],
+      ["🚚 Отправить трек-номер", "📊 Остаток товара"]
+    ]).resize());
   });
 
   bot.hears("📦 Список заказов", (ctx) => {

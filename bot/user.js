@@ -2,10 +2,9 @@ const { Markup } = require("telegraf");
 const { ADMIN_ID } = require("./state");
 
 function setupUser(bot, translations, formTranslations, userLanguage, userOrders, orders, stock) {
-  // --- Старт тільки для юзерів ---
   bot.start((ctx) => {
     if (ctx.from.id === ADMIN_ID) {
-      // якщо адмін → пропускаємо, адмінка обробляється в admin.js
+      // адмін не бачить юзерське меню
       return;
     }
 
