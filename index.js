@@ -97,10 +97,10 @@ const formTranslations = {
 // --- Старт ---
 bot.start((ctx) => {
   if (ctx.from.id === ADMIN_ID) {
-    return ctx.reply("👩‍💻 Админ-панель", Markup.keyboard([
-      ["📦 Список заказов", "✏️ Изменить количество товара"],
-      ["🚚 Отправить трек-номер"]
-    ]).resize());
+      return ctx.reply("👩‍💻 Админ-панель", Markup.keyboard([
+        ["📦 Список заказов", "✏️ Изменить количество товара"],
+        ["🚚 Отправить трек-номер", "📊 Остаток товара"]
+      ]).resize());
   }
 
   ctx.reply(
@@ -146,6 +146,10 @@ bot.hears("🚚 Отправить трек-номер", (ctx) => {
   adminState[ctx.from.id] = "enter_orderId";
 });
 
+bot.hears("📊 Остаток товара", (ctx) => {
+  ctx.reply(`📊 Текущий остаток: ${stock}`);
+});
+
 bot.on("text", (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
   const state = adminState[ctx.from.id];
@@ -170,12 +174,15 @@ bot.on("text", (ctx) => {
   if (state?.step === "enter_tracking") {
     const trackNumber = ctx.message.text;
     const order = orders.find(o => o.id === state.orderId);
-    if (order) {
-      bot.telegram.sendMessage(order.userId, `📦 Ваш заказ отправлен!\nТрек-номер: ${trackNumber}`);
-      ctx.reply(`✅ Трек-номер отправлен (${order.id})`);
-    } else {
-      ctx.reply("❌ Заказ не найден");
-    }
+      if (order) {
+        bot.telegram.sendMessage(order.userId, `📦 Ваш заказ отправлен!\nТрек-номер: ${trackNumber}`);
+        ctx.reply(`✅ Трек-номер отправлен (${order.id})`);
+
+        // 🔻 Зменшуємо кількість товарів
+        if (stock > 0) stock -= 1;
+      } else {
+        ctx.reply("❌ Заказ не найден");
+      }
     adminState[ctx.from.id] = null;
   }
 });
