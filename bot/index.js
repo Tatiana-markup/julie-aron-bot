@@ -1,8 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 
-const userBot = require('./bot/user');
-const { bot: adminBot } = require('./bot/admin');
+const userBot = require('./user');
+const { bot: adminBot } = require('./admin');
 
 const app = express();
 app.use(express.json());
