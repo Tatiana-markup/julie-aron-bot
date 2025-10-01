@@ -1,10 +1,24 @@
-module.exports = function setupAdminHandlers(bot, { orders, adminState, ADMIN_ID, stockRef, setStock }) {
-  
+const { Markup } = require("telegraf");
+let { ADMIN_ID, orders, stock, adminState } = require("./state");
+
+function setupAdmin(bot) {
+  bot.start((ctx) => {
+    if (ctx.from.id === ADMIN_ID) {
+      return ctx.reply("👩‍💻 Панель администратора", Markup.keyboard([
+        ["📦 Список заказов", "✏️ Изменить количество товара"],
+        ["🚚 Отправить трек-номер", "📊 Остаток товара"],
+      ]).resize());
+    }
+  });
+
   bot.hears("📦 Список заказов", (ctx) => {
     if (ctx.from.id !== ADMIN_ID) return;
-    if (orders.length === 0) return ctx.reply("ℹ️ Заказов нет");
-    let list = orders.map(o => `🆔 ${o.id} | ${o.data.name} | ${o.data.price}€`).join("\n");
-    ctx.reply(`📋 Заказы:\n\n${list}\n\nОстаток: ${stockRef()}`);
+    if (orders.length === 0) {
+      ctx.reply("ℹ️ Заказов нет");
+    } else {
+      let list = orders.map(o => `🆔 ${o.id} | ${o.data.name} | ${o.data.price}€`).join("\n");
+      ctx.reply(`📋 Заказы:\n\n${list}\n\nОстаток: ${stock}`);
+    }
   });
 
   bot.hears("✏️ Изменить количество товара", (ctx) => {
@@ -15,7 +29,7 @@ module.exports = function setupAdminHandlers(bot, { orders, adminState, ADMIN_ID
 
   bot.hears("📊 Остаток товара", (ctx) => {
     if (ctx.from.id !== ADMIN_ID) return;
-    ctx.reply(`📦 Остаток: ${stockRef()}`);
+    ctx.reply(`📊 Текущее количество наборов: ${stock}`);
   });
 
   bot.hears("🚚 Отправить трек-номер", (ctx) => {
@@ -31,8 +45,8 @@ module.exports = function setupAdminHandlers(bot, { orders, adminState, ADMIN_ID
     if (state === "update_stock") {
       const newStock = parseInt(ctx.message.text);
       if (!isNaN(newStock) && newStock >= 0) {
-        setStock(newStock);
-        ctx.reply(`✅ Количество наборов обновлено: ${stockRef()}`);
+        stock = newStock;
+        ctx.reply(`✅ Количество наборов обновлено: ${stock}`);
       } else {
         ctx.reply("❌ Введите число");
       }
@@ -51,10 +65,18 @@ module.exports = function setupAdminHandlers(bot, { orders, adminState, ADMIN_ID
       if (order) {
         bot.telegram.sendMessage(order.userId, `📦 Ваш заказ отправлен!\nТрек-номер: ${trackNumber}`);
         ctx.reply(`✅ Трек-номер отправлен (${order.id})`);
+
+        // авто-зменшення залишку
+        if (stock > 0) {
+          stock -= 1;
+          ctx.reply(`📊 Остаток товара уменьшен: ${stock}`);
+        }
       } else {
         ctx.reply("❌ Заказ не найден");
       }
       adminState[ctx.from.id] = null;
     }
   });
-};
+}
+
+module.exports = setupAdmin;
