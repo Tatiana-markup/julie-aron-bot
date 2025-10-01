@@ -10,6 +10,7 @@ const CHANNEL_ID = '@Julii_und_Aron';
 const userLanguage = {};
 const userOrders = {};
 let orders = [];
+let stock = 20; // залишок товарів
 
 // --- Старт ---
 bot.start((ctx) => {
@@ -139,6 +140,7 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
   order.userId = ctx.from.id;
 
   orders.push(order);
+  stock--; // автоматично зменшуємо залишок
 
   let message = "";
   if (ctx.match[0] === 'pay_paypal') {
@@ -208,4 +210,4 @@ bot.on('photo', async (ctx) => {
   }
 });
 
-module.exports = bot;
+module.exports = { userBot: bot, orders, stock };

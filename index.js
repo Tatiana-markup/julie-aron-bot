@@ -1,25 +1,23 @@
 require('dotenv').config();
 const express = require('express');
-const { Telegraf } = require('telegraf');
 
-// створюємо бота
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const { userBot, orders, stock } = require('./user');
+const { adminBot } = require('./admin');
 
-// підключаємо модулі
-const userModule = require('./user');
-const { orders, stock } = userModule(bot);
-
-require('./admin')(bot, { orders, stock });
-
-// Express сервер
 const app = express();
 app.use(express.json());
 
-app.use(bot.webhookCallback('/webhook'));
-bot.telegram.setWebhook(process.env.WEBHOOK_URL + '/webhook');
+// --- Webhooks ---
+app.use(userBot.webhookCallback('/user'));
+app.use(adminBot.webhookCallback('/admin'));
 
-app.get('/', (req, res) => res.send('Julie & Aron Bot 🚀'));
+userBot.telegram.setWebhook(process.env.WEBHOOK_URL + '/user');
+adminBot.telegram.setWebhook(process.env.WEBHOOK_URL + '/admin');
 
+// --- Root route ---
+app.get('/', (req, res) => res.send('Julie & Aron Bot работает 🚀'));
+
+// --- Start server ---
 app.listen(process.env.PORT || 8080, () => {
   console.log('Server running on port', process.env.PORT || 8080);
 });

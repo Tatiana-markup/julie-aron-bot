@@ -1,9 +1,9 @@
-const { Markup } = require('telegraf');
+const { Telegraf, Markup } = require('telegraf');
 
 let ordersRef;
 let stockRef;
 
-module.exports = (bot, { orders, stock }) => {
+function initAdminBot(bot, { orders, stock }) {
   ordersRef = orders;
   stockRef = stock;
 
@@ -36,4 +36,6 @@ module.exports = (bot, { orders, stock }) => {
   bot.hears("🚚 Отправить трек-номер", (ctx) => {
     ctx.reply("📦 Введите ID заказа, а затем трек-номер");
   });
-};
+}
+
+module.exports = { initAdminBot };
