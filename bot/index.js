@@ -3,9 +3,9 @@ const { Telegraf } = require('telegraf');
 const express = require('express');
 
 // Імпорт модулів
-const { translations, formTranslations } = require('./bot/translations');
-const setupUserHandlers = require('./bot/user');
-const setupAdminHandlers = require('./bot/admin');
+const { translations, formTranslations } = require('./translations');
+const setupUserHandlers = require('./user');
+const setupAdminHandlers = require('./admin');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
