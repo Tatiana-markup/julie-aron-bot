@@ -17,60 +17,9 @@ const adminState = {};
 
 // --- Тексти ---
 const translations = {
-  de: {
-    welcome: `
-💎 *Deine Chance auf einen Duft, den man nie vergisst*
-
-Statt *600 €* — nur *63 €* für ein Set aus drei luxuriösen Düften:
-
-✨ *Red Crystal* (wie Baccarat Rouge 540) — die Energie der Begierde in jeder Note.  
-🌸 *Rive Droite* (wie Fleur Narcotic) — Eleganz und Leichtigkeit für jeden Tag.  
-🔥 *Nossi* (exklusives Parfum) — ein Duft, der beeindruckt.  
-
-Im Set: *150 ml + 15 ml Proben*.  
-🔐 Nur *20 Sets* — Exklusivität, die im Nu verschwindet.
-    `,
-    order: '🛒 Bestellen für 63 €',
-    payment: '💳 Zahlungsbedingungen',
-    shipping: '📦 Lieferbedingungen',
-    questions: '❓ Fragen'
-  },
-  en: {
-    welcome: `
-💎 *Your chance to own an unforgettable fragrance*
-
-Instead of *€600* — only *€63* for a set of three luxurious scents:
-
-✨ *Red Crystal* (like Baccarat Rouge 540) — the energy of desire in every note.  
-🌸 *Rive Droite* (like Fleur Narcotic) — elegance and lightness for every day.  
-🔥 *Nossi* (exclusive creation) — a fragrance designed to impress.  
-
-Includes *150 ml + 15 ml testers*.  
-🔐 Only *20 sets* — exclusivity that disappears before your eyes.
-    `,
-    order: '🛒 Order for €63',
-    payment: '💳 Payment terms',
-    shipping: '📦 Shipping terms',
-    questions: '❓ Questions'
-  },
-  ru: {
-    welcome: `
-💎 *Твой шанс на аромат, который невозможно забыть*
-
-Вместо *600 €* — всего *63 €* за набор из трёх роскошных ароматов:
-
-✨ *Red Crystal* (как Baccarat Rouge 540) — энергия желания в каждой ноте.  
-🌸 *Rive Droite* (как Fleur Narcotic) — утончённость и лёгкость на каждый день.  
-🔥 *Nossi* (авторский эксклюзив) — аромат, созданный поражать.  
-
-В комплекте: *150 мл + 15 мл пробников*.  
-🔐 Всего *20 наборов* — эксклюзивность, исчезающая на глазах.
-    `,
-    order: '🛒 Заказать за 63 €',
-    payment: '💳 Условия оплаты',
-    shipping: '📦 Условия доставки',
-    questions: '❓ Вопросы'
-  }
+  de: { order: '🛒 Bestellen für 63 €' },
+  en: { order: '🛒 Order for €63' },
+  ru: { order: '🛒 Заказать за 63 €' }
 };
 
 const formTranslations = {
@@ -89,7 +38,13 @@ const formTranslations = {
     paySepa: '🏦 SEPA-Überweisung',
     successPayment: '✅ Zahlung erhalten.\nIhre Bestellung wird morgen versendet.\nDie Sendungsnummer erhalten Sie in diesem Chat.',
     confirmSent: "✅ Danke! Ihre Bestätigung wurde an den Administrator gesendet.",
-    noActiveOrder: "⚠️ Sie haben keine aktive Bestellung. Bitte zuerst bestellen."
+    noActiveOrder: "⚠️ Sie haben keine aktive Bestellung. Bitte zuerst bestellen.",
+    sepa: (price) => `
+👤 Empfänger: Iuliia Troshina
+🏦 IBAN: DE77 7505 0000 0027 9627 45
+🔑 BIC: BYLADEM1RBG
+💶 Betrag: ${price} €
+📌 Verwendungszweck: Julii & Aron Bestellung ${price}`
   },
   en: {
     subscribe: '👉 Subscribe to the channel to get 10% off and grab the set for €63',
@@ -106,7 +61,13 @@ const formTranslations = {
     paySepa: '🏦 SEPA Transfer',
     successPayment: '✅ Payment received.\nYour order will be shipped tomorrow.\nThe tracking number will be sent to this chat.',
     confirmSent: "✅ Thank you! Your confirmation has been sent to the administrator.",
-    noActiveOrder: "⚠️ You don’t have an active order. Please place an order first."
+    noActiveOrder: "⚠️ You don’t have an active order. Please place an order first.",
+    sepa: (price) => `
+👤 Recipient: Iuliia Troshina
+🏦 IBAN: DE77 7505 0000 0027 9627 45
+🔑 BIC: BYLADEM1RBG
+💶 Amount: ${price} €
+📌 Purpose: Julii & Aron order ${price}`
   },
   ru: {
     subscribe: '👉 Подпишитесь на канал, чтобы получить скидку 10% и забрать набор за 63 €',
@@ -123,27 +84,100 @@ const formTranslations = {
     paySepa: '🏦 SEPA-перевод',
     successPayment: '✅ Оплата получена.\nВаш заказ будет отправлен завтра.\nТрек-номер придёт в этот чат.',
     confirmSent: "✅ Спасибо! Ваше подтверждение отправлено администратору.",
-    noActiveOrder: "⚠️ У вас нет активного заказа. Пожалуйста, сначала оформите заказ."
+    noActiveOrder: "⚠️ У вас нет активного заказа. Пожалуйста, сначала оформите заказ.",
+    sepa: (price) => `
+👤 Получатель: Iuliia Troshina
+🏦 IBAN: DE77 7505 0000 0027 9627 45
+🔑 BIC: BYLADEM1RBG
+💶 Сумма: ${price} €
+📌 Назначение: Julii & Aron заказ ${price}`
   }
 };
 
-// --- Обробка фото (скрін оплати) ---
+// --- Старт ---
+bot.start((ctx) => {
+  if (ctx.from.id === ADMIN_ID) {
+    return ctx.reply("👩‍💻 Админ-панель", Markup.keyboard([
+      ["📦 Список заказов", "✏️ Изменить количество товара"],
+      ["🚚 Отправить трек-номер"]
+    ]).resize());
+  }
+
+  ctx.reply(
+    'Здравствуйте 👋 Пожалуйста, выберите язык / Hi 👋 Please choose a language / Hallo 👋 Bitte wählen Sie eine Sprache',
+    Markup.inlineKeyboard([
+      [Markup.button.callback('🇩🇪 Deutsch', 'lang_de')],
+      [Markup.button.callback('🇬🇧 English', 'lang_en')],
+      [Markup.button.callback('🇷🇺 Русский', 'lang_ru')]
+    ])
+  );
+});
+
+// --- Фото підтвердження ---
 bot.on("photo", async (ctx) => {
   const order = orders.find(o => o.userId === ctx.from.id);
   const lang = userLanguage[ctx.from.id] || "en";
 
-  if (!order) {
-    return ctx.reply(formTranslations[lang].noActiveOrder);
-  }
+  if (!order) return ctx.reply(formTranslations[lang].noActiveOrder);
 
   const photo = ctx.message.photo[ctx.message.photo.length - 1].file_id;
   await ctx.telegram.sendPhoto(
     ADMIN_ID,
     photo,
-    { caption: `📷 Скрин оплаты\n🆔 Order: ${order.id}\n👤 ${order.data.name}` }
+    { caption: `📷 Подтверждение оплаты\n🆔 Order: ${order.id}\n👤 ${order.data.name}` }
   );
-
   ctx.reply(formTranslations[lang].confirmSent);
+});
+
+// --- Адмін панель ---
+bot.hears("📦 Список заказов", (ctx) => {
+  if (orders.length === 0) return ctx.reply("ℹ️ Заказов нет");
+  let list = orders.map(o => `🆔 ${o.id} | ${o.data.name} | ${o.data.price}€`).join("\n");
+  ctx.reply(`📋 Заказы:\n${list}\n\nОстаток: ${stock}`);
+});
+
+bot.hears("✏️ Изменить количество товара", (ctx) => {
+  ctx.reply("Введите новое количество наборов:");
+  adminState[ctx.from.id] = "update_stock";
+});
+
+bot.hears("🚚 Отправить трек-номер", (ctx) => {
+  ctx.reply("Введите ID заказа:");
+  adminState[ctx.from.id] = "enter_orderId";
+});
+
+bot.on("text", (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  const state = adminState[ctx.from.id];
+
+  if (state === "update_stock") {
+    const newStock = parseInt(ctx.message.text);
+    if (!isNaN(newStock) && newStock >= 0) {
+      stock = newStock;
+      ctx.reply(`✅ Количество наборов обновлено: ${stock}`);
+    } else {
+      ctx.reply("❌ Введите число");
+    }
+    adminState[ctx.from.id] = null;
+  }
+
+  if (state === "enter_orderId") {
+    const orderId = ctx.message.text;
+    ctx.reply("Введите трек-номер:");
+    adminState[ctx.from.id] = { step: "enter_tracking", orderId };
+  }
+
+  if (state?.step === "enter_tracking") {
+    const trackNumber = ctx.message.text;
+    const order = orders.find(o => o.id === state.orderId);
+    if (order) {
+      bot.telegram.sendMessage(order.userId, `📦 Ваш заказ отправлен!\nТрек-номер: ${trackNumber}`);
+      ctx.reply(`✅ Трек-номер отправлен (${order.id})`);
+    } else {
+      ctx.reply("❌ Заказ не найден");
+    }
+    adminState[ctx.from.id] = null;
+  }
 });
 
 // --- Express ---
