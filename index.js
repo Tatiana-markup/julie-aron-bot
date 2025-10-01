@@ -6,8 +6,10 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const ADMIN_ID = 477219279;
 const CHANNEL_ID = '@Julii_und_Aron';
 
-// --- Ліміт товарів ---
-let stock = 20; // кількість доступних наборів
+let stock = 20; // кількість наборів
+const userLanguage = {};
+const userOrders = {};
+let orderCounter = 1;
 
 // --- Тексти ---
 const translations = {
@@ -67,7 +69,6 @@ Includes *150 ml + 15 ml testers*.
   }
 };
 
-// --- Тексти для форми ---
 const formTranslations = {
   de: {
     subscribe: '👉 Abonniere den Kanal, um 10% Rabatt zu erhalten und das Set für 63 € zu bekommen',
@@ -75,19 +76,15 @@ const formTranslations = {
     checkSub: '✅ Ich habe abonniert',
     notSubscribed: '❌ Sie haben den Kanal noch nicht abonniert. Bitte zuerst abonnieren 👆',
     buyNoSub: '💳 Ohne Abo für 70 € kaufen',
-    askName: 'Bitte geben Sie Ihren vollständigen Vor- und Nachnamen ein (mindestens 2 Wörter):',
+    askName: 'Bitte geben Sie Ihren vollständigen Namen ein (Vorname + Nachname):',
     askAddress: 'Bitte geben Sie Ihre Lieferadresse ein (Land, Stadt, PLZ, Straße/Haus/Wohnung):',
     askEmail: 'Bitte geben Sie Ihre E-Mail-Adresse ein:',
-    askPhone: 'Bitte geben Sie Ihre Telefonnummer im internationalen Format ein (z. B. +49123456789):',
+    askPhone: 'Bitte geben Sie Ihre Telefonnummer im internationalen Format (+49...):',
     askPayment: 'Wählen Sie die Zahlungsmethode:',
     payPaypal: '💳 PayPal',
     paySepa: '🏦 SEPA-Überweisung',
     successPayment: '✅ Zahlung erhalten.\nIhre Bestellung wird morgen versendet.\nDie Sendungsnummer erhalten Sie in diesem Chat.',
-    errors: {
-      name: '❌ Ungültiger Name. Bitte geben Sie Vor- und Nachnamen ein.',
-      phone: '❌ Ungültige Telefonnummer. Bitte im internationalen Format eingeben (z. B. +49123456789).',
-      email: '❌ Ungültige E-Mail-Adresse.'
-    }
+    sepaDetails: `🏦 *SEPA-Überweisung*\n\nEmpfänger: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nBetrag: [amount] €\nVerwendungszweck: Julii & Aron Bestellung [amount]`
   },
   en: {
     subscribe: '👉 Subscribe to the channel to get 10% off and grab the set for €63',
@@ -95,19 +92,15 @@ const formTranslations = {
     checkSub: '✅ I subscribed',
     notSubscribed: '❌ You are not subscribed yet. Please subscribe first 👆',
     buyNoSub: '💳 Buy without subscription for €70',
-    askName: 'Please enter your full name (at least 2 words):',
+    askName: 'Please enter your full name (First + Last name):',
     askAddress: 'Please enter your delivery address (Country, City, Zip, Street/House/Apartment):',
     askEmail: 'Please enter your email:',
-    askPhone: 'Please enter your phone number in international format (e.g. +49123456789):',
+    askPhone: 'Please enter your phone number in international format (+44...):',
     askPayment: 'Choose payment method:',
     payPaypal: '💳 PayPal',
     paySepa: '🏦 SEPA Transfer',
     successPayment: '✅ Payment received.\nYour order will be shipped tomorrow.\nThe tracking number will be sent to this chat.',
-    errors: {
-      name: '❌ Invalid name. Please enter both first and last name.',
-      phone: '❌ Invalid phone number. Please use international format (e.g. +49123456789).',
-      email: '❌ Invalid email address.'
-    }
+    sepaDetails: `🏦 *SEPA Transfer*\n\nRecipient: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nAmount: [amount] €\nReference: Julii & Aron Order [amount]`
   },
   ru: {
     subscribe: '👉 Подпишитесь на канал, чтобы получить скидку 10% и забрать набор за 63 €',
@@ -115,52 +108,35 @@ const formTranslations = {
     checkSub: '✅ Я подписался',
     notSubscribed: '❌ Вы ещё не подписались. Пожалуйста, сначала подпишитесь 👆',
     buyNoSub: '💳 Купить без подписки за 70 €',
-    askName: 'Введите имя и фамилию (минимум 2 слова):',
+    askName: 'Введите имя и фамилию:',
     askAddress: 'Введите адрес доставки (Страна, Город, Индекс, Улица/дом/кв.):',
     askEmail: 'Введите ваш email:',
-    askPhone: 'Введите номер телефона в международном формате (например, +49123456789):',
+    askPhone: 'Введите ваш телефон в международном формате (+7...):',
     askPayment: 'Выберите метод оплаты:',
     payPaypal: '💳 PayPal',
     paySepa: '🏦 SEPA-перевод',
     successPayment: '✅ Оплата получена.\nВаш заказ будет отправлен завтра.\nТрек-номер придёт в этот чат.',
-    errors: {
-      name: '❌ Неверное имя. Нужно указать имя и фамилию.',
-      phone: '❌ Неверный номер телефона. Используйте международный формат (например, +49123456789).',
-      email: '❌ Неверный email.'
-    }
+    sepaDetails: `🏦 *SEPA-перевод*\n\nПолучатель: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nСумма: [amount] €\nНазначение: Julii & Aron Bestellung [amount]`
   }
 };
 
-// --- Перевірки ---
-function validateInput(type, value) {
-  switch (type) {
-    case 'name':
-      return value.trim().split(' ').length >= 2;
-    case 'address':
-      return value.length > 5;
-    case 'email':
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    case 'phone':
-      return /^\+[1-9]\d{9,14}$/.test(value);
-    default:
-      return true;
-  }
-}
-
-// --- Тимчасові сховища ---
-const userLanguage = {};
-const userOrders = {};
-
 // --- Старт ---
 bot.start((ctx) => {
-  ctx.reply(
-    'Здравствуйте 👋 Пожалуйста, выберите язык / Hi 👋 Please choose a language / Hallo 👋 Bitte wählen Sie eine Sprache',
-    Markup.inlineKeyboard([
-      [Markup.button.callback('🇩🇪 Deutsch', 'lang_de')],
-      [Markup.button.callback('🇬🇧 English', 'lang_en')],
-      [Markup.button.callback('🇷🇺 Русский', 'lang_ru')]
-    ])
-  );
+  if (ctx.from.id === ADMIN_ID) {
+    ctx.reply('👋 Админ-панель', Markup.inlineKeyboard([
+      [Markup.button.callback('📦 Список заказов', 'admin_orders')],
+      [Markup.button.callback('📉 Остаток наборов', 'admin_stock')]
+    ]));
+  } else {
+    ctx.reply(
+      'Здравствуйте 👋 Пожалуйста, выберите язык / Hi 👋 Please choose a language / Hallo 👋 Bitte wählen Sie eine Sprache',
+      Markup.inlineKeyboard([
+        [Markup.button.callback('🇩🇪 Deutsch', 'lang_de')],
+        [Markup.button.callback('🇬🇧 English', 'lang_en')],
+        [Markup.button.callback('🇷🇺 Русский', 'lang_ru')]
+      ])
+    );
+  }
 });
 
 // --- Вибір мови ---
@@ -172,19 +148,23 @@ bot.action(['lang_de', 'lang_en', 'lang_ru'], (ctx) => {
   ctx.reply(translations[lang].welcome, {
     parse_mode: 'Markdown',
     ...Markup.inlineKeyboard([
-      [Markup.button.callback(translations[lang].order, 'order')]
+      [Markup.button.callback(translations[lang].order, 'order')],
+      [Markup.button.callback(translations[lang].payment, 'payment')],
+      [Markup.button.callback(translations[lang].shipping, 'shipping')],
+      [Markup.button.callback(translations[lang].questions, 'questions')]
     ])
   });
 });
 
-// --- Сценарій замовлення ---
+// --- Замовлення ---
 bot.action('order', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   try {
     const member = await ctx.telegram.getChatMember(CHANNEL_ID, ctx.from.id);
     if (['member', 'administrator', 'creator'].includes(member.status)) {
+      const orderId = orderCounter++;
+      userOrders[ctx.from.id] = { id: orderId, step: 'name', lang, data: { price: 63 } };
       ctx.reply(formTranslations[lang].askName);
-      userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
     } else {
       ctx.reply(formTranslations[lang].subscribe, Markup.inlineKeyboard([
         [Markup.button.url(formTranslations[lang].subscribeBtn, 'https://t.me/Julii_und_Aron')],
@@ -197,67 +177,39 @@ bot.action('order', async (ctx) => {
   }
 });
 
-// --- Перевірка підписки вручну ---
-bot.action('check_sub', async (ctx) => {
-  const lang = userLanguage[ctx.from.id] || 'en';
-  const member = await ctx.telegram.getChatMember(CHANNEL_ID, ctx.from.id);
-  if (['member', 'administrator', 'creator'].includes(member.status)) {
-    ctx.reply(formTranslations[lang].askName);
-    userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
-  } else {
-    ctx.reply(formTranslations[lang].notSubscribed);
-  }
-});
-
-// --- Без підписки ---
-bot.action('order_no_sub', (ctx) => {
-  const lang = userLanguage[ctx.from.id] || 'en';
-  ctx.reply(formTranslations[lang].askName);
-  userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 70 } };
-});
-
-// --- Обробка форми ---
+// --- Форма ---
 bot.on('text', (ctx) => {
   const order = userOrders[ctx.from.id];
   if (!order) return;
-
   const lang = order.lang;
-  const value = ctx.message.text;
 
   switch (order.step) {
     case 'name':
-      if (!validateInput('name', value)) {
-        ctx.reply(formTranslations[lang].errors.name);
-        return;
+      if (ctx.message.text.trim().split(' ').length < 2) {
+        return ctx.reply('❌ Введите имя и фамилию / Please enter first and last name / Bitte Vor- und Nachname eingeben');
       }
-      order.data.name = value;
+      order.data.name = ctx.message.text;
       order.step = 'address';
       ctx.reply(formTranslations[lang].askAddress);
       break;
     case 'address':
-      if (!validateInput('address', value)) {
-        ctx.reply('❌ Invalid address, please try again.');
-        return;
-      }
-      order.data.address = value;
+      order.data.address = ctx.message.text;
       order.step = 'email';
       ctx.reply(formTranslations[lang].askEmail);
       break;
     case 'email':
-      if (!validateInput('email', value)) {
-        ctx.reply(formTranslations[lang].errors.email);
-        return;
+      if (!ctx.message.text.includes('@')) {
+        return ctx.reply('❌ Неверный email / Invalid email / Ungültige E-Mail');
       }
-      order.data.email = value;
+      order.data.email = ctx.message.text;
       order.step = 'phone';
       ctx.reply(formTranslations[lang].askPhone);
       break;
     case 'phone':
-      if (!validateInput('phone', value)) {
-        ctx.reply(formTranslations[lang].errors.phone);
-        return;
+      if (!/^\+\d{7,15}$/.test(ctx.message.text)) {
+        return ctx.reply('❌ Телефон должен быть в формате +123456789 / Phone must be +123456789 / Telefon im Format +123456789');
       }
-      order.data.phone = value;
+      order.data.phone = ctx.message.text;
       order.step = 'payment';
       ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
         [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
@@ -272,11 +224,19 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
   const order = userOrders[ctx.from.id];
   if (!order) return;
   const lang = order.lang;
-
   order.data.payment = ctx.match[0] === 'pay_paypal' ? 'PayPal' : 'SEPA';
 
+  let paymentLink = '';
+  if (order.data.payment === 'PayPal') {
+    paymentLink = order.data.price === 63
+      ? 'https://www.paypal.com/paypalme/JuliiAron/63'
+      : 'https://www.paypal.com/paypalme/JuliiAron/70';
+  } else {
+    paymentLink = formTranslations[lang].sepaDetails.replace(/\[amount\]/g, order.data.price);
+  }
+
   const orderSummary = `
-📦 Новый заказ (${order.data.price} €)
+🆔 Order #${order.id} (${order.data.price} €)
 
 👤 Name: ${order.data.name}
 🏠 Address: ${order.data.address}
@@ -285,11 +245,19 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
 💳 Payment: ${order.data.payment}
   `;
 
-  ctx.telegram.sendMessage(ADMIN_ID, orderSummary);
-  ctx.reply('🔗 [Натисніть тут, щоб "оплатити"](https://example.com/test)', { parse_mode: 'Markdown' });
+  ctx.telegram.sendMessage(ADMIN_ID, orderSummary, Markup.inlineKeyboard([
+    [Markup.button.callback(`✅ Подтвердить оплату заказа #${order.id}`, `confirm_${order.id}`)]
+  ]));
 
-  delete userOrders[ctx.from.id];
-  stock--; // зменшуємо залишок
+  ctx.reply(`🔗 ${paymentLink}`, { parse_mode: 'Markdown' });
+});
+
+// --- Подтверждение оплаты ---
+bot.action(/confirm_(\d+)/, (ctx) => {
+  const orderId = ctx.match[1];
+  stock--;
+  ctx.reply(`✅ Оплата подтверждена для заказа #${orderId}`);
+  ctx.telegram.sendMessage(ADMIN_ID, `✅ Заказ #${orderId} подтвержден. Остаток: ${stock}`);
 });
 
 // --- Express ---
@@ -299,7 +267,6 @@ app.use(bot.webhookCallback('/webhook'));
 bot.telegram.setWebhook(process.env.WEBHOOK_URL + '/webhook');
 
 app.get('/', (req, res) => res.send('Bot is running 🚀'));
-
 app.listen(process.env.PORT || 8080, () => {
   console.log('Server running on port', process.env.PORT || 8080);
 });
