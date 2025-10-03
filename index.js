@@ -157,9 +157,20 @@ bot.on('text', async (ctx, next) => {
         return ctx.reply(formTranslations[lang].askPhone);
       order.step = 'phone';
       return ctx.reply(formTranslations[lang].askPhone);
-    case 'phone':
-      if (!/^\\+\\d{7,15}$/.test(text)) return ctx.reply(formTranslations[lang].errorPhone);
-      order.data.phone = text;
+      case 'phone': {
+        const phone = text.trim();
+        // Допускає +, країновий код 1–3 цифри, і далі 6–12 цифр
+        if (!/^\+\d{9,15}$/.test(phone)) {
+          return ctx.reply(formTranslations[lang].errorPhone || "❌ Невірний формат телефону. Приклад: +380931234567");
+        }
+        order.data.phone = phone;
+        order.step = 'payment';
+        return ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
+          [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
+          [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')]
+        ]));
+      }
+
       order.step = 'payment';
       return ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
         [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
