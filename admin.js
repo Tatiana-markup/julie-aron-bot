@@ -19,7 +19,7 @@ bot.command('admin', (ctx) => {
 
 // 📦 Список заказов
 bot.hears("📦 Список заказов", (ctx) => {
-  if (ordersRef.length === 0) {
+  if (!ordersRef || ordersRef.length === 0) {
     ctx.reply("ℹ️ Заказов нет");
   } else {
     let list = ordersRef
@@ -96,6 +96,7 @@ bot.on("text", (ctx) => {
   }
 });
 
+// додаємо метод ініціалізації, але експортуємо сам бот
 bot.init = ({ orders, getStock, setStock }) => {
   ordersRef = orders;
   stockRef = getStock;
