@@ -65,7 +65,7 @@ bot.action('order', async (ctx) => {
         [Markup.button.callback(formTranslations[lang].buyNoSub, 'order_no_sub')]
       ]));
     }
-  } catch (err) {
+  } catch {
     ctx.reply('⚠️ Error checking subscription');
   }
 });
@@ -95,6 +95,8 @@ bot.action('order_no_sub', (ctx) => {
 
 // --- Форма ---
 bot.on('text', (ctx) => {
+  if (ctx.from.id === ADMIN_ID && adminState[ctx.from.id]) return; // адмін вводить дані → обробляється нижче
+
   const order = userOrders[ctx.from.id];
   if (!order) return;
   const lang = order.lang;
@@ -148,63 +150,47 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
   order.userId = ctx.from.id;
   orders.push(order);
 
-  let message = "";
-  if (ctx.match[0] === 'pay_paypal') {
-    const link = order.data.price === 63
-      ? "https://www.paypal.com/paypalme/JuliiAron/63"
-      : "https://www.paypal.com/paypalme/JuliiAron/70";
-
-    message = formTranslations[lang].paypalMsg(order.data.price, link, orderId);
-  } else {
-    message = formTranslations[lang].sepaMsg(order.data.price, orderId);
-  }
+  const message = ctx.match[0] === 'pay_paypal'
+    ? formTranslations[lang].paypalMsg(order.data.price, orderId)
+    : formTranslations[lang].sepaMsg(order.data.price, orderId);
 
   ctx.reply(message, { parse_mode: "Markdown" });
 
-  const orderSummary = `
-🆔 Заказ: ${orderId}
-👤 Имя: ${order.data.name}
-🏠 Адрес: ${order.data.address}
-✉️ Email: ${order.data.email}
-📱 Телефон: ${order.data.phone}
-💳 Оплата: ${order.data.payment}
-💰 Сумма: ${order.data.price} €
-  `;
-  ctx.telegram.sendMessage(ADMIN_ID, `📦 Новый заказ:\n${orderSummary}`);
+  ctx.telegram.sendMessage(ADMIN_ID, `📦 Новый заказ:\n🆔 ${orderId}\n👤 ${order.data.name}\n💰 ${order.data.price}€`);
 
   delete userOrders[ctx.from.id];
 });
 
-// --- Скрін ---
+// --- Обробка скріншотів ---
 bot.on('photo', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   const lastOrder = orders.find(o => o.userId === ctx.from.id);
+  if (!lastOrder) return ctx.reply(formTranslations[lang].noOrderFound);
 
-    if (!lastOrder) {
-        if (lang === "de") {
-          return ctx.reply("⚠️ Wir konnten keine aktive Bestellung finden.");
-        }
-        if (lang === "ru") {
-          return ctx.reply("⚠️ У нас нет вашего активного заказа.");
-        }
-        return ctx.reply("⚠️ We couldn't find your active order.");
-      }
+  const photoId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
 
-  const photoId = ctx.message.photo.at(-1).file_id;
+  await ctx.telegram.sendPhoto(ADMIN_ID, photoId, {
+    caption: `🖼 Подтверждение оплаты\n🆔 Заказ: ${lastOrder.id}`,
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "✅ Подтвердить оплату", callback_data: `confirm_${lastOrder.id}` }]
+      ]
+    }
+  });
 
-    await ctx.telegram.sendPhoto(ADMIN_ID, photoId, {
-        caption: `🖼 Подтверждение оплаты\n🆔 Заказ: ${lastOrder.id}`
-      });
+  ctx.reply(formTranslations[lang].paymentConfirmSent);
+});
 
-      // відповідаємо користувачу ВІДПОВІДНОЮ мовою
-      if (lang === "de") {
-        ctx.reply("✅ Danke! Ihre Zahlungsbestätigung wurde an den Administrator gesendet.\nUnser Manager wird sie prüfen und bestätigen.");
-      } else if (lang === "ru") {
-        ctx.reply("✅ Спасибо! Ваше подтверждение отправлено администратору.\nНаш менеджер проверит его и подтвердит заказ.");
-      } else {
-        ctx.reply("✅ Thank you! Your payment confirmation has been sent to the administrator.\nOur manager will review and confirm it.");
-      }
-    });
+// --- Підтверждение оплаты админом ---
+bot.action(/confirm_(.+)/, (ctx) => {
+  const orderId = ctx.match[1];
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return ctx.reply("❌ Заказ не найден");
+
+  const lang = order.lang || "en";
+  ctx.telegram.sendMessage(order.userId, formTranslations[lang].paymentApproved);
+  ctx.reply(`✅ Оплата по заказу ${orderId} подтверждена!`);
+});
 
 // --- Адмін панель ---
 bot.hears("📦 Список заказов", (ctx) => {
@@ -232,6 +218,7 @@ bot.hears("🚚 Отправить трек-номер", (ctx) => {
   adminState[ctx.from.id] = "enter_orderId";
 });
 
+// --- Ввід даних адміном ---
 bot.on("text", (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
   const state = adminState[ctx.from.id];
@@ -277,3 +264,4 @@ app.get('/', (req, res) => res.send('Bot is running 🚀'));
 app.listen(process.env.PORT || 8080, () =>
   console.log('Server running on port', process.env.PORT || 8080)
 );
+
