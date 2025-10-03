@@ -200,7 +200,7 @@ bot.on('photo', async (ctx) => {
       if (lang === "de") {
         ctx.reply("✅ Danke! Ihre Zahlungsbestätigung wurde an den Administrator gesendet.\nUnser Manager wird sie prüfen und bestätigen.");
       } else if (lang === "ru") {
-        ctx.reply("✅ Спасибо! Ваше подтверждение отправлено администратору.\nНаш менеджер проверит его und подтвердит заказ.");
+        ctx.reply("✅ Спасибо! Ваше подтверждение отправлено администратору.\nНаш менеджер проверит его и подтвердит заказ.");
       } else {
         ctx.reply("✅ Thank you! Your payment confirmation has been sent to the administrator.\nOur manager will review and confirm it.");
       }
