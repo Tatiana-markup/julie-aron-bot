@@ -123,7 +123,7 @@ bot.on('text', (ctx) => {
       ctx.reply(formTranslations[lang].askPhone);
       break;
     case 'phone':
-      if (!/^\+4\d{7,15}$/.test(text)) {
+      if (!/^\+\d{7,15}$/.test(text)) {
         return ctx.reply(formTranslations[lang].errorPhone);
       }
       order.data.phone = text;
