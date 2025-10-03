@@ -1,31 +1,19 @@
 require('dotenv').config();
-const express = require('express');
 const { Telegraf, Markup } = require('telegraf');
+const express = require('express');
 const { translations, formTranslations } = require('./translations');
 
-// --- Налаштування ---
 const bot = new Telegraf(process.env.BOT_TOKEN);
-const ADMIN_ID = parseInt(process.env.ADMIN_ID);
+const ADMIN_ID = process.env.ADMIN_ID;
 const CHANNEL_ID = '@Julii_und_Aron';
 
 // --- Тимчасові сховища ---
-let stock = 20;
-let orders = [];
 const userLanguage = {};
 const userOrders = {};
-let adminState = {};
+let orders = [];
 
-// ==========================
-// 📦 КОРИСТУВАЧ
-// ==========================
+// --- Старт ---
 bot.start((ctx) => {
-  if (ctx.from.id === ADMIN_ID) {
-    return ctx.reply("👩‍💻 Панель администратора", Markup.keyboard([
-      ["📦 Список заказов", "📊 Остаток товара"],
-      ["✏️ Изменить количество товара", "🚚 Отправить трек-номер"]
-    ]).resize());
-  }
-
   ctx.reply(
     'Здравствуйте 👋 Пожалуйста, выберите язык / Hi 👋 Please choose a language / Hallo 👋 Bitte wählen Sie eine Sprache',
     Markup.inlineKeyboard([
@@ -58,10 +46,13 @@ bot.action('order', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   try {
     const member = await ctx.telegram.getChatMember(CHANNEL_ID, ctx.from.id);
+
     if (['member', 'administrator', 'creator'].includes(member.status)) {
+      // ✅ Якщо підписаний
       ctx.reply(formTranslations[lang].askName);
       userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
     } else {
+      // ❌ Якщо не підписаний
       ctx.reply(formTranslations[lang].subscribe, Markup.inlineKeyboard([
         [Markup.button.url(formTranslations[lang].subscribeBtn, 'https://t.me/Julii_und_Aron')],
         [Markup.button.callback(formTranslations[lang].checkSub, 'check_sub')],
@@ -74,11 +65,12 @@ bot.action('order', async (ctx) => {
   }
 });
 
-// --- Check Sub ---
+// --- Перевірка підписки ---
 bot.action('check_sub', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   try {
     const member = await ctx.telegram.getChatMember(CHANNEL_ID, ctx.from.id);
+
     if (['member', 'administrator', 'creator'].includes(member.status)) {
       ctx.reply(formTranslations[lang].askName);
       userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
@@ -90,7 +82,7 @@ bot.action('check_sub', async (ctx) => {
   }
 });
 
-// --- Order without sub ---
+// --- Без підписки ---
 bot.action('order_no_sub', (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   ctx.reply(formTranslations[lang].askName);
@@ -99,9 +91,6 @@ bot.action('order_no_sub', (ctx) => {
 
 // --- Форма ---
 bot.on('text', (ctx) => {
-  // якщо це адмін — ігноруємо тут
-  if (ctx.from.id === ADMIN_ID) return;
-
   const order = userOrders[ctx.from.id];
   if (!order) return;
   const lang = order.lang;
@@ -162,14 +151,26 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
       ? "https://www.paypal.com/paypalme/JuliiAron/63"
       : "https://www.paypal.com/paypalme/JuliiAron/70";
 
-    message = `🔗 [${order.data.price} € → PayPal](${link})\n\nPlease pay and send a screenshot.\n🆔 Order: ${orderId}`;
+    if (lang === "de") {
+      message = `🔗 [${order.data.price} € → PayPal](${link})\n\nBitte führen Sie die Zahlung durch und senden Sie einen Screenshot zur Bestätigung.\n🆔 Bestellnummer: ${orderId}`;
+    } else if (lang === "ru") {
+      message = `🔗 [${order.data.price} € → PayPal](${link})\n\nПожалуйста, произведите оплату и отправьте скриншот для подтверждения.\n🆔 Номер заказа: ${orderId}`;
+    } else {
+      message = `🔗 [${order.data.price} € → PayPal](${link})\n\nPlease make the payment and send a screenshot for confirmation.\n🆔 Order ID: ${orderId}`;
+    }
   } else {
-    message = `🏦 SEPA\n\nRecipient: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nAmount: ${order.data.price} €\nPurpose: Julii & Aron Order ${order.data.price}\n\nSend screenshot after payment.\n🆔 Order: ${orderId}`;
+    if (lang === "de") {
+      message = `🏦 SEPA-Überweisung\n\nEmpfänger: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nBetrag: ${order.data.price} €\nVerwendungszweck: Julii & Aron Bestellung ${order.data.price}\n\nBitte führen Sie die Zahlung durch und senden Sie einen Screenshot zur Bestätigung.\n🆔 Bestellnummer: ${orderId}`;
+    } else if (lang === "ru") {
+      message = `🏦 SEPA-перевод\n\nПолучатель: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nСумма: ${order.data.price} €\nНазначение: Julii & Aron Bestellung ${order.data.price}\n\nПожалуйста, произведите оплату и отправьте скриншот для подтверждения.\n🆔 Номер заказа: ${orderId}`;
+    } else {
+      message = `🏦 SEPA Transfer\n\nRecipient: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nAmount: ${order.data.price} €\nPurpose: Julii & Aron Order ${order.data.price}\n\nPlease make the payment and send a screenshot for confirmation.\n🆔 Order ID: ${orderId}`;
+    }
   }
 
   ctx.reply(message, { parse_mode: "Markdown" });
 
-  // повідомлення адміну (російською)
+  // --- повідомлення адміну ---
   const orderSummary = `
 🆔 Заказ: ${orderId}
 👤 Имя: ${order.data.name}
@@ -186,91 +187,38 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
 
 // --- Обробка скріншотів ---
 bot.on('photo', async (ctx) => {
-  if (ctx.from.id === ADMIN_ID) return;
+  const lang = userLanguage[ctx.from.id] || 'en';
   const lastOrder = orders.find(o => o.userId === ctx.from.id);
-  if (!lastOrder) return ctx.reply("⚠️ Нет активного заказа.");
+
+  if (!lastOrder) {
+    if (lang === "de") return ctx.reply("⚠️ Wir haben keine aktive Bestellung von Ihnen gefunden.");
+    if (lang === "ru") return ctx.reply("⚠️ У нас нет вашего активного заказа.");
+    return ctx.reply("⚠️ We couldn't find your active order.");
+  }
 
   const photoId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
+
+  // надсилаємо адміну фото + ID заказа
   await ctx.telegram.sendPhoto(ADMIN_ID, photoId, {
     caption: `🖼 Подтверждение оплаты\n🆔 Заказ: ${lastOrder.id}`
   });
-  ctx.reply("✅ Спасибо! Подтверждение отправлено администратору.");
-});
 
-// ==========================
-// 👩‍💻 АДМИНКА
-// ==========================
-bot.hears("📦 Список заказов", (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-  if (orders.length === 0) {
-    ctx.reply("ℹ️ Заказов нет");
+  // відповідь користувачу
+  if (lang === "de") {
+    ctx.reply("✅ Danke! Ihre Zahlungsbestätigung wurde an den Administrator gesendet.");
+  } else if (lang === "ru") {
+    ctx.reply("✅ Спасибо! Ваше подтверждение отправлено администратору.");
   } else {
-    let list = orders.map(o => `🆔 ${o.id} | ${o.data.name} | ${o.data.price}€`).join("\n");
-    ctx.reply(`📋 Заказы:\n\n${list}\n\n📊 Остаток: ${stock}`);
+    ctx.reply("✅ Thank you! Your payment confirmation has been sent to the administrator.");
   }
 });
 
-bot.hears("📊 Остаток товара", (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply(`📊 Текущее количество наборов: ${stock}`);
-});
-
-bot.hears("✏️ Изменить количество товара", (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply("✏️ Введите новое количество наборов:");
-  adminState[ctx.from.id] = "update_stock";
-});
-
-bot.hears("🚚 Отправить трек-номер", (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply("📦 Введите ID заказа:");
-  adminState[ctx.from.id] = "enter_orderId";
-});
-
-// Обработка текста в админке
-bot.on("text", (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-  const state = adminState[ctx.from.id];
-
-  if (state === "update_stock") {
-    const newStock = parseInt(ctx.message.text);
-    if (!isNaN(newStock) && newStock >= 0) {
-      stock = newStock;
-      ctx.reply(`✅ Количество наборов обновлено: ${stock}`);
-    } else {
-      ctx.reply("❌ Введите число");
-    }
-    adminState[ctx.from.id] = null;
-  }
-
-  if (state === "enter_orderId") {
-    const orderId = ctx.message.text;
-    ctx.reply("✏️ Введите трек-номер:");
-    adminState[ctx.from.id] = { step: "enter_tracking", orderId };
-  }
-
-  if (state?.step === "enter_tracking") {
-    const trackNumber = ctx.message.text;
-    const order = orders.find(o => o.id === state.orderId);
-    if (order) {
-      bot.telegram.sendMessage(order.userId, `📦 Ваш заказ отправлен!\nТрек-номер: ${trackNumber}`);
-      ctx.reply(`✅ Трек-номер отправлен пользователю (🆔 ${order.id})`);
-      stock = stock - 1;
-    } else {
-      ctx.reply("❌ Заказ не найден");
-    }
-    adminState[ctx.from.id] = null;
-  }
-});
-
-// ==========================
-// 🚀 EXPRESS
-// ==========================
+// --- Express ---
 const app = express();
 app.use(express.json());
 app.use(bot.webhookCallback('/webhook'));
 bot.telegram.setWebhook(process.env.WEBHOOK_URL + '/webhook');
-app.get('/', (req, res) => res.send('Julie & Aron Bot работает 🚀'));
+app.get('/', (req, res) => res.send('Bot is running 🚀'));
 app.listen(process.env.PORT || 8080, () => {
   console.log('Server running on port', process.env.PORT || 8080);
 });
