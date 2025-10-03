@@ -147,9 +147,14 @@ bot.on('text', async (ctx, next) => {
       order.data.address = text;
       order.step = 'email';
       return ctx.reply(formTranslations[lang].askEmail);
-    case 'email':
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(text)) return ctx.reply(formTranslations[lang].errorEmail);
-      order.data.email = text;
+      case 'email':
+        const email = text.trim();
+        if(!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+          return ctx.reply(formTranslations[lang].errorEmail);
+        }
+        order.data.email = email;
+        order.step = 'phone';
+        return ctx.reply(formTranslations[lang].askPhone);
       order.step = 'phone';
       return ctx.reply(formTranslations[lang].askPhone);
     case 'phone':
