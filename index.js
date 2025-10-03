@@ -1,6 +1,5 @@
 require('dotenv').config();
 const { Telegraf, Markup } = require('telegraf');
-const express = require('express');
 const { translations, formTranslations } = require('./translations');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -46,13 +45,10 @@ bot.action('order', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   try {
     const member = await ctx.telegram.getChatMember(CHANNEL_ID, ctx.from.id);
-
     if (['member', 'administrator', 'creator'].includes(member.status)) {
-      // ✅ Якщо підписаний
       ctx.reply(formTranslations[lang].askName);
       userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
     } else {
-      // ❌ Якщо не підписаний
       ctx.reply(formTranslations[lang].subscribe, Markup.inlineKeyboard([
         [Markup.button.url(formTranslations[lang].subscribeBtn, 'https://t.me/Julii_und_Aron')],
         [Markup.button.callback(formTranslations[lang].checkSub, 'check_sub')],
@@ -70,7 +66,6 @@ bot.action('check_sub', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   try {
     const member = await ctx.telegram.getChatMember(CHANNEL_ID, ctx.from.id);
-
     if (['member', 'administrator', 'creator'].includes(member.status)) {
       ctx.reply(formTranslations[lang].askName);
       userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
@@ -170,7 +165,7 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
 
   ctx.reply(message, { parse_mode: "Markdown" });
 
-  // --- повідомлення адміну ---
+  // --- повідомлення адміну (російською) ---
   const orderSummary = `
 🆔 Заказ: ${orderId}
 👤 Имя: ${order.data.name}
@@ -190,35 +185,25 @@ bot.on('photo', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   const lastOrder = orders.find(o => o.userId === ctx.from.id);
 
-  if (!lastOrder) {
-    if (lang === "de") return ctx.reply("⚠️ Wir haben keine aktive Bestellung von Ihnen gefunden.");
-    if (lang === "ru") return ctx.reply("⚠️ У нас нет вашего активного заказа.");
-    return ctx.reply("⚠️ We couldn't find your active order.");
-  }
-
   const photoId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
 
-  // надсилаємо адміну фото + ID заказа
-  await ctx.telegram.sendPhoto(ADMIN_ID, photoId, {
-    caption: `🖼 Подтверждение оплаты\n🆔 Заказ: ${lastOrder.id}`
-  });
-
-  // відповідь користувачу
-  if (lang === "de") {
-    ctx.reply("✅ Danke! Ihre Zahlungsbestätigung wurde an den Administrator gesendet.");
-  } else if (lang === "ru") {
-    ctx.reply("✅ Спасибо! Ваше подтверждение отправлено администратору.");
+  if (lastOrder) {
+    await ctx.telegram.sendPhoto(ADMIN_ID, photoId, {
+      caption: `🖼 Подтверждение оплаты\n🆔 Заказ: ${lastOrder.id}`
+    });
   } else {
-    ctx.reply("✅ Thank you! Your payment confirmation has been sent to the administrator.");
+    await ctx.telegram.sendPhoto(ADMIN_ID, photoId, {
+      caption: `🖼 Подтверждение оплаты (заказ не найден автоматически)`
+    });
+  }
+
+  if (lang === "de") {
+    ctx.reply("✅ Danke! Ihr Zahlungsnachweis wurde gesendet. Unser Manager prüft ihn und bestätigt Ihre Bestellung bald.");
+  } else if (lang === "ru") {
+    ctx.reply("✅ Спасибо! Ваш платёж отправлен администратору. Наш менеджер проверит его и подтвердит заказ.");
+  } else {
+    ctx.reply("✅ Thank you! Your payment confirmation was sent. Our manager will review it and confirm your order soon.");
   }
 });
 
-// --- Express ---
-const app = express();
-app.use(express.json());
-app.use(bot.webhookCallback('/webhook'));
-bot.telegram.setWebhook(process.env.WEBHOOK_URL + '/webhook');
-app.get('/', (req, res) => res.send('Bot is running 🚀'));
-app.listen(process.env.PORT || 8080, () => {
-  console.log('Server running on port', process.env.PORT || 8080);
-});
+bot.launch();
