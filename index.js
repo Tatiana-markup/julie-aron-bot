@@ -65,7 +65,7 @@ bot.action('order', async (ctx) => {
         [Markup.button.callback(formTranslations[lang].buyNoSub, 'order_no_sub')]
       ]));
     }
-  } catch {
+  } catch (err) {
     ctx.reply('⚠️ Error checking subscription');
   }
 });
@@ -95,8 +95,6 @@ bot.action('order_no_sub', (ctx) => {
 
 // --- Форма ---
 bot.on('text', (ctx) => {
-  if (ctx.from.id === ADMIN_ID && adminState[ctx.from.id]) return; // адмін вводить дані → обробляється нижче
-
   const order = userOrders[ctx.from.id];
   if (!order) return;
   const lang = order.lang;
@@ -150,13 +148,28 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
   order.userId = ctx.from.id;
   orders.push(order);
 
-  const message = ctx.match[0] === 'pay_paypal'
-    ? formTranslations[lang].paypalMsg(order.data.price, orderId)
-    : formTranslations[lang].sepaMsg(order.data.price, orderId);
+  let message = "";
+  if (ctx.match[0] === 'pay_paypal') {
+    const link = order.data.price === 63
+      ? "https://www.paypal.com/paypalme/JuliiAron/63"
+      : "https://www.paypal.com/paypalme/JuliiAron/70";
+    message = formTranslations[lang].paypalMsg(order.data.price, orderId);
+  } else {
+    message = formTranslations[lang].sepaMsg(order.data.price, orderId);
+  }
 
   ctx.reply(message, { parse_mode: "Markdown" });
 
-  ctx.telegram.sendMessage(ADMIN_ID, `📦 Новый заказ:\n🆔 ${orderId}\n👤 ${order.data.name}\n💰 ${order.data.price}€`);
+  const orderSummary = `
+🆔 Заказ: ${orderId}
+👤 Имя: ${order.data.name}
+🏠 Адрес: ${order.data.address}
+✉️ Email: ${order.data.email}
+📱 Телефон: ${order.data.phone}
+💳 Оплата: ${order.data.payment}
+💰 Сумма: ${order.data.price} €
+  `;
+  ctx.telegram.sendMessage(ADMIN_ID, `📦 Новый заказ:\n${orderSummary}`);
 
   delete userOrders[ctx.from.id];
 });
@@ -165,7 +178,10 @@ bot.action(['pay_paypal', 'pay_sepa'], (ctx) => {
 bot.on('photo', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   const lastOrder = orders.find(o => o.userId === ctx.from.id);
-  if (!lastOrder) return ctx.reply(formTranslations[lang].noOrderFound);
+
+  if (!lastOrder) {
+    return ctx.reply(formTranslations[lang].orderNotFound);
+  }
 
   const photoId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
 
@@ -178,7 +194,7 @@ bot.on('photo', async (ctx) => {
     }
   });
 
-  ctx.reply(formTranslations[lang].paymentConfirmSent);
+  ctx.reply(formTranslations[lang].paymentSent);
 });
 
 // --- Підтверждение оплаты админом ---
@@ -188,7 +204,8 @@ bot.action(/confirm_(.+)/, (ctx) => {
   if (!order) return ctx.reply("❌ Заказ не найден");
 
   const lang = order.lang || "en";
-  ctx.telegram.sendMessage(order.userId, formTranslations[lang].paymentApproved);
+
+  bot.telegram.sendMessage(order.userId, formTranslations[lang].paymentConfirmed);
   ctx.reply(`✅ Оплата по заказу ${orderId} подтверждена!`);
 });
 
@@ -218,7 +235,6 @@ bot.hears("🚚 Отправить трек-номер", (ctx) => {
   adminState[ctx.from.id] = "enter_orderId";
 });
 
-// --- Ввід даних адміном ---
 bot.on("text", (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
   const state = adminState[ctx.from.id];
