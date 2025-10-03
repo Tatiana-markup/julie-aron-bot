@@ -128,54 +128,104 @@ bot.action('order_no_sub', async (ctx) => {
   userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 70 } };
 });
 
-// --- Форма ---
-bot.on('text', async (ctx, next) => {
-  if (ctx.from?.id === ADMIN_ID && adminState[ctx.from.id]) return next();
-
-  const order = userOrders[ctx.from.id];
-  if (!order) return;
-  const lang = order.lang;
+// --- ЄДИНИЙ обробник текстів ---
+bot.on("text", async (ctx) => {
+  const userId = ctx.from.id;
   const text = ctx.message.text.trim();
 
-  switch (order.step) {
-    case 'name':
-      if (text.split(" ").length < 2) return ctx.reply(formTranslations[lang].errorName);
-      order.data.name = text;
-      order.step = 'address';
-      return ctx.reply(formTranslations[lang].askAddress);
-    case 'address':
-      order.data.address = text;
-      order.step = 'email';
-      return ctx.reply(formTranslations[lang].askEmail);
-      case 'email':
-        const email = text.trim();
-        if(!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
-          return ctx.reply(formTranslations[lang].errorEmail);
-        }
-        order.data.email = email;
-        order.step = 'phone';
-        return ctx.reply(formTranslations[lang].askPhone);
-      order.step = 'phone';
-      return ctx.reply(formTranslations[lang].askPhone);
-      case 'phone': {
-        const phone = text.trim();
-        // Допускає +, країновий код 1–3 цифри, і далі 6–12 цифр
-        if (!/^\+\d{9,15}$/.test(phone)) {
-          return ctx.reply(formTranslations[lang].errorPhone || "❌ Невірний формат телефону. Приклад: +380931234567");
-        }
-        order.data.phone = phone;
-        order.step = 'payment';
-        return ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
-          [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
-          [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')]
-        ]));
-      }
+  // --- Якщо це адмін і є активний state ---
+  if (userId === ADMIN_ID && adminState[userId]) {
+    const state = adminState[userId];
 
-      order.step = 'payment';
+    if (state === "update_stock") {
+      const newStock = parseInt(text);
+      if (!isNaN(newStock) && newStock >= 0) {
+        stock = newStock;
+        await ctx.reply(`✅ Количество наборов обновлено: ${stock}`);
+      } else {
+        await ctx.reply("❌ Введите корректное число");
+      }
+      adminState[userId] = null;
+      return;
+    }
+
+    if (state === "enter_orderId") {
+      adminState[userId] = { step: "enter_tracking", orderId: text };
+      return ctx.reply("✏️ Введите трек-номер:");
+    }
+
+    if (state?.step === "enter_tracking") {
+      const trackNumber = text;
+      const order = orders.find(o => o.id === state.orderId);
+      if (order) {
+        await bot.telegram.sendMessage(order.userId, `📦 Ваш заказ отправлен!\nТрек-номер: ${trackNumber}`);
+        await ctx.reply(`✅ Трек-номер отправлен пользователю (🆔 ${order.id})`);
+        stock = Math.max(0, stock - 1);
+      } else {
+        await ctx.reply("❌ Заказ не найден");
+      }
+      adminState[userId] = null;
+      return;
+    }
+
+    if (state === "broadcast") {
+      let success = 0, fail = 0;
+      for (let id of userIds) {
+        try {
+          await bot.telegram.sendMessage(id, text, { parse_mode: "Markdown" });
+          success++;
+        } catch {
+          fail++;
+        }
+      }
+      ctx.reply(`✅ Рассылка завершена. Успешно: ${success}, ошибок: ${fail}`);
+      adminState[userId] = null;
+      return;
+    }
+  }
+
+  // --- Якщо це юзер і є активне замовлення ---
+  const order = userOrders[userId];
+  if (!order) return;
+
+  const lang = order.lang;
+
+  switch (order.step) {
+    case "name":
+      if (text.split(" ").length < 2) {
+        return ctx.reply(formTranslations[lang].errorName);
+      }
+      order.data.name = text;
+      order.step = "address";
+      return ctx.reply(formTranslations[lang].askAddress);
+
+    case "address":
+      order.data.address = text;
+      order.step = "email";
+      return ctx.reply(formTranslations[lang].askEmail);
+
+    case "email": {
+      const email = text.trim();
+      if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+        return ctx.reply(formTranslations[lang].errorEmail);
+      }
+      order.data.email = email;
+      order.step = "phone";
+      return ctx.reply(formTranslations[lang].askPhone);
+    }
+
+    case "phone": {
+      const phone = text.trim();
+      if (!/^\+\d{9,15}$/.test(phone)) {
+        return ctx.reply(formTranslations[lang].errorPhone || "❌ Невірний формат телефону. Приклад: +380931234567");
+      }
+      order.data.phone = phone;
+      order.step = "payment";
       return ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
-        [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
-        [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')],
+        [Markup.button.callback(formTranslations[lang].payPaypal, "pay_paypal")],
+        [Markup.button.callback(formTranslations[lang].paySepa, "pay_sepa")]
       ]));
+    }
   }
 });
 
@@ -271,62 +321,10 @@ bot.hears("🚚 Отправить трек-номер", (ctx) => {
   adminState[ctx.from.id] = "enter_orderId";
 });
 
-// --- Рассылка ---
 bot.hears("📢 Рассылка", (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
   ctx.reply("✏️ Введи текст рассылки:");
   adminState[ctx.from.id] = "broadcast";
-});
-
-bot.on("text", async (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-  const state = adminState[ctx.from.id];
-  if (!state) return;
-  const text = ctx.message.text;
-
-  if (state === "update_stock") {
-    const newStock = parseInt(text);
-    if (!isNaN(newStock) && newStock >= 0) {
-      stock = newStock;
-      ctx.reply(`✅ Количество наборов обновлено: ${stock}`);
-    } else {
-      ctx.reply("❌ Введите корректное число");
-    }
-    adminState[ctx.from.id] = null;
-  }
-
-  if (state === "enter_orderId") {
-    const orderId = text;
-    ctx.reply("✏️ Введите трек-номер:");
-    adminState[ctx.from.id] = { step: "enter_tracking", orderId };
-  }
-
-  if (state?.step === "enter_tracking") {
-    const trackNumber = text;
-    const order = orders.find(o => o.id === state.orderId);
-    if (order) {
-      bot.telegram.sendMessage(order.userId, `📦 Ваш заказ отправлен!\nТрек-номер: ${trackNumber}`);
-      ctx.reply(`✅ Трек-номер отправлен пользователю (🆔 ${order.id})`);
-      stock--;
-    } else {
-      ctx.reply("❌ Заказ не найден");
-    }
-    adminState[ctx.from.id] = null;
-  }
-
-  if (state === "broadcast") {
-    let success = 0, fail = 0;
-    for (let id of userIds) {
-      try {
-        await bot.telegram.sendMessage(id, text, { parse_mode: "Markdown" });
-        success++;
-      } catch {
-        fail++;
-      }
-    }
-    ctx.reply(`✅ Рассылка завершена. Успешно: ${success}, ошибок: ${fail}`);
-    adminState[ctx.from.id] = null;
-  }
 });
 
 // --- Сервер ---
