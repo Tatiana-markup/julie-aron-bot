@@ -117,14 +117,46 @@ bot.action('order_no_sub', async (ctx) => {
   userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 70 } };
 });
 
+// --- Адмін-панель ---
+bot.hears("📦 Список заказов", (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  if (!orders.length) return ctx.reply("ℹ️ Заказов нет");
+  const list = orders.map(o => `🆔 ${o.id} | ${o.data.name} | ${o.data.price}€`).join("\n");
+  ctx.reply(`📋 Заказы:\n\n${list}\n\n📊 Остаток: ${stock}`);
+});
+
+bot.hears("📊 Остаток товара", (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  ctx.reply(`📊 Текущее количество наборов: ${stock}`);
+});
+
+bot.hears("✏️ Изменить количество товара", (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  ctx.reply("✏️ Введите новое количество наборов:");
+  adminState[ctx.from.id] = "update_stock";
+});
+
+bot.hears("🚚 Отправить трек-номер", (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  ctx.reply("📦 Введите ID заказа:");
+  adminState[ctx.from.id] = "enter_orderId";
+});
+
+bot.hears("📢 Рассылка", (ctx) => {
+  if (ctx.from.id !== ADMIN_ID) return;
+  ctx.reply("✏️ Введи текст рассылки:");
+  adminState[ctx.from.id] = "broadcast";
+});
+
 // --- ЄДИНИЙ обробник текстів ---
 bot.on("text", async (ctx) => {
   const userId = ctx.from.id;
   const text = ctx.message.text.trim();
 
-  // --- Якщо це адмін і є state ---
-  if (userId === ADMIN_ID && adminState[userId]) {
+  // --- Якщо це адмін ---
+  if (userId === ADMIN_ID) {
     const state = adminState[userId];
+    if (!state) return; // без state не чіпаємо, щоб працювали hears()
 
     if (state === "update_stock") {
       const newStock = parseInt(text);
@@ -173,7 +205,7 @@ bot.on("text", async (ctx) => {
     }
   }
 
-  // --- Якщо це юзер і є активне замовлення ---
+  // --- Якщо це юзер ---
   const order = userOrders[userId];
   if (!order) return;
   const lang = order.lang;
@@ -274,37 +306,6 @@ bot.action(/confirm_(.+)/, async (ctx) => {
   const lang = order.lang;
   await bot.telegram.sendMessage(order.userId, formTranslations[lang].paymentConfirmed);
   ctx.reply(`✅ Оплата по заказу ${orderId} подтверждена!`);
-});
-
-// --- Адмін-панель ---
-bot.hears("📦 Список заказов", (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-  if (!orders.length) return ctx.reply("ℹ️ Заказов нет");
-  const list = orders.map(o => `🆔 ${o.id} | ${o.data.name} | ${o.data.price}€`).join("\n");
-  ctx.reply(`📋 Заказы:\n\n${list}\n\n📊 Остаток: ${stock}`);
-});
-
-bot.hears("📊 Остаток товара", (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply(`📊 Текущее количество наборов: ${stock}`);
-});
-
-bot.hears("✏️ Изменить количество товара", (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply("✏️ Введите новое количество наборов:");
-  adminState[ctx.from.id] = "update_stock";
-});
-
-bot.hears("🚚 Отправить трек-номер", (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply("📦 Введите ID заказа:");
-  adminState[ctx.from.id] = "enter_orderId";
-});
-
-bot.hears("📢 Рассылка", (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply("✏️ Введи текст рассылки:");
-  adminState[ctx.from.id] = "broadcast";
 });
 
 // --- Сервер ---
