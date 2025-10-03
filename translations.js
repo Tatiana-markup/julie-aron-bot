@@ -1,20 +1,20 @@
 const translations = {
   de: {
-    welcome: "💎 Deine Chance auf einen Duft, den man nie vergisst\n\nStatt €600 — nur €63 für drei Luxus-Düfte...",
+    welcome: "💎 Deine Chance auf einen Duft, den man nie vergisst\n\nStatt €600 — nur €63 für ein Set aus drei luxuriösen Düften:\n\n✨ Red Crystal (ähnlich wie Baccarat Rouge 540) — Energie der Begierde in jeder Note.\n🌸 Rive Droite (ähnlich wie Fleur Narcotic) — Raffinesse und Leichtigkeit für den Alltag.\n🔥 Nossi (exklusiv) — ein Duft, der beeindruckt.\n\nEnthält 150 ml + 15 ml Proben.\n🔐 Nur 20 Sets — Exklusivität, die im Nu verschwindet.",
     order: "🛒 Bestellen für 63 €",
     payment: "💳 Zahlungsbedingungen",
     shipping: "📦 Lieferbedingungen",
     questions: "❓ Fragen"
   },
   en: {
-    welcome: "💎 Your chance to own an unforgettable fragrance\n\nInstead of €600 — only €63 for three luxury scents...",
+    welcome: "💎 Your chance to own a fragrance you’ll never forget\n\nInstead of €600 — only €63 for a set of three luxury scents:\n\n✨ Red Crystal (like Baccarat Rouge 540) — the energy of desire in every note.\n🌸 Rive Droite (like Fleur Narcotic) — elegance and lightness for every day.\n🔥 Nossi (exclusive) — a fragrance made to impress.\n\nIncludes 150 ml + 15 ml testers.\n🔐 Only 20 sets — exclusivity that vanishes before your eyes.",
     order: "🛒 Order for €63",
     payment: "💳 Payment terms",
     shipping: "📦 Shipping terms",
     questions: "❓ Questions"
   },
   ru: {
-    welcome: "💎 Твой шанс на аромат, который невозможно забыть\n\nВместо €600 — всего €63 за три роскошных аромата...",
+    welcome: "💎 Твой шанс на аромат, который невозможно забыть\n\nВместо €600 — всего €63 за набор из трёх роскошных ароматов:\n\n✨ Red Crystal (как Baccarat Rouge 540) — энергия желания в каждой ноте.\n🌸 Rive Droite (как Fleur Narcotic) — изысканность и лёгкость на каждый день.\n🔥 Nossi (эксклюзив) — аромат, созданный впечатлять.\n\nВ комплекте 150 мл + 15 мл пробников.\n🔐 Всего 20 наборов — эксклюзивность, исчезающая на глазах.",
     order: "🛒 Заказать за 63 €",
     payment: "💳 Условия оплаты",
     shipping: "📦 Условия доставки",
