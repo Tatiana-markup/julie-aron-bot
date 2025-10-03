@@ -180,16 +180,31 @@ bot.on('photo', async (ctx) => {
   const lang = userLanguage[ctx.from.id] || 'en';
   const lastOrder = orders.find(o => o.userId === ctx.from.id);
 
-  if (!lastOrder) return;
+    if (!lastOrder) {
+        if (lang === "de") {
+          return ctx.reply("⚠️ Wir konnten keine aktive Bestellung finden.");
+        }
+        if (lang === "ru") {
+          return ctx.reply("⚠️ У нас нет вашего активного заказа.");
+        }
+        return ctx.reply("⚠️ We couldn't find your active order.");
+      }
 
   const photoId = ctx.message.photo.at(-1).file_id;
 
-  await ctx.telegram.sendPhoto(ADMIN_ID, photoId, {
-    caption: `🖼 Подтверждение оплаты\n🆔 Заказ: ${lastOrder.id}`
-  });
+    await ctx.telegram.sendPhoto(ADMIN_ID, photoId, {
+        caption: `🖼 Подтверждение оплаты\n🆔 Заказ: ${lastOrder.id}`
+      });
 
-  ctx.reply(formTranslations[lang].paymentConfirm);
-});
+      // відповідаємо користувачу ВІДПОВІДНОЮ мовою
+      if (lang === "de") {
+        ctx.reply("✅ Danke! Ihre Zahlungsbestätigung wurde an den Administrator gesendet.\nUnser Manager wird sie prüfen und bestätigen.");
+      } else if (lang === "ru") {
+        ctx.reply("✅ Спасибо! Ваше подтверждение отправлено администратору.\nНаш менеджер проверит его und подтвердит заказ.");
+      } else {
+        ctx.reply("✅ Thank you! Your payment confirmation has been sent to the administrator.\nOur manager will review and confirm it.");
+      }
+    });
 
 // --- Адмін панель ---
 bot.hears("📦 Список заказов", (ctx) => {
