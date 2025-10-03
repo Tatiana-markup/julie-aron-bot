@@ -96,11 +96,10 @@ bot.on("text", (ctx) => {
   }
 });
 
-module.exports = {
-  bot,
-  init: ({ orders, getStock, setStock }) => {
-    ordersRef = orders;
-    stockRef = getStock;
-    updateStock = setStock;
-  }
+bot.init = ({ orders, getStock, setStock }) => {
+  ordersRef = orders;
+  stockRef = getStock;
+  updateStock = setStock;
 };
+
+module.exports = bot;
