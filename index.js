@@ -17,11 +17,11 @@ const bot = new Telegraf(BOT_TOKEN);
 
 // --- Сховища ---
 let stock = 20;
-const userLanguage = {};     // { userId: 'en' | 'de' | 'ru' }
-const userOrders = {};       // { userId: { step, lang, data } }
-let orders = [];             // [{ id, userId, lang, data }]
-const adminState = {};       // { [ADMIN_ID]: string | object }
-const userIds = new Set();   // унікальні userId, хто писав боту
+const userLanguage = {};
+const userOrders = {};
+let orders = [];
+const adminState = {};
+const userIds = new Set();
 
 // --- Хелпери ---
 const getLang = (userId) => userLanguage[userId] || 'en';
@@ -41,21 +41,7 @@ async function isSubscribed(ctx) {
   }
 }
 
-// Безпечне формування повідомлення про відправку треку з локалізацією
-function buildTrackingMessage(lang, trackNumber) {
-  const t = formTranslations[lang] || formTranslations.en || {};
-  if (typeof t.orderShipped === 'function') {
-    return t.orderShipped(trackNumber);
-  }
-  if (typeof t.trackingMsg === 'function') {
-    return t.trackingMsg(trackNumber);
-  }
-  const trackingLabel = t.trackingLabel || 'Трек-номер';
-  const shippedText  = t.orderShippedText || 'Ваше замовлення відправлено!';
-  return `📦 ${shippedText}\n${trackingLabel}: ${trackNumber}`;
-}
-
-// --- Middleware: запам’ятовуємо всіх юзерів ---
+// --- Middleware ---
 bot.use((ctx, next) => {
   if (ctx.from?.id) userIds.add(ctx.from.id);
   return next();
@@ -100,7 +86,7 @@ bot.action(['lang_de', 'lang_en', 'lang_ru'], async (ctx) => {
   });
 });
 
-// --- «Купити за 63 €» ---
+// --- Кнопка «Купити за 63 €» ---
 bot.action('order', async (ctx) => {
   await ctx.answerCbQuery();
   const lang = getLang(ctx.from.id);
@@ -112,20 +98,20 @@ bot.action('order', async (ctx) => {
       return ctx.reply(formTranslations[lang].askName);
     } else {
       return ctx.reply(
-        formTranslations[lang].subscribe,
+        formTranslations[lang].subscribe || "🔔 Підпишіться, щоб отримати знижку!",
         Markup.inlineKeyboard([
           [Markup.button.url(
-            formTranslations[lang].subscribeBtn,
+            formTranslations[lang].subscribeBtn || "Підписатись",
             `https://t.me/${CHANNEL_ID.replace('@', '')}`
           )],
-          [Markup.button.callback(formTranslations[lang].checkSub, 'check_sub')],
-          [Markup.button.callback(formTranslations[lang].buyNoSub, 'order_no_sub')],
+          [Markup.button.callback(formTranslations[lang].checkSub || "✅ Я підписався", 'check_sub')],
+          [Markup.button.callback(formTranslations[lang].buyNoSub || "💸 Купити без знижки (70€)", 'order_no_sub')],
         ])
       );
     }
   } catch (err) {
-    console.error('order action error:', err);
-    return ctx.reply('⚠️ Помилка при старті замовлення. Спробуйте ще раз.');
+    console.error("Error in order:", err);
+    return ctx.reply("⚠️ Помилка при старті замовлення. Спробуйте ще раз.");
   }
 });
 
@@ -147,11 +133,11 @@ bot.action('order_no_sub', async (ctx) => {
   return ctx.reply(formTranslations[lang].askName);
 });
 
-// --- Адмін-панель (ReplyKeyboard) ---
+// --- Адмін-панель ---
 bot.hears('📦 Список заказов', (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
-  if (!orders.length) return ctx.reply('ℹ️ Заказов нет');
-  const list = orders.map(o => `🆔 ${o.id} | ${o.data.name} | ${o.data.price}€`).join('\n');
+  if (!orders.length) return ctx.reply("ℹ️ Заказов нет");
+  const list = orders.map(o => `🆔 ${o.id} | ${o.data.name} | ${o.data.price}€`).join("\n");
   ctx.reply(`📋 Заказы:\n\n${list}\n\n📊 Остаток: ${stock}`);
 });
 
@@ -162,70 +148,68 @@ bot.hears('📊 Остаток товара', (ctx) => {
 
 bot.hears('✏️ Изменить количество товара', (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply('✏️ Введите новое количество наборов:');
-  adminState[ctx.from.id] = 'update_stock';
+  ctx.reply("✏️ Введите новое количество наборов:");
+  adminState[ctx.from.id] = "update_stock";
 });
 
 bot.hears('🚚 Отправить трек-номер', (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply('📦 Введите ID заказа:');
-  adminState[ctx.from.id] = 'enter_orderId';
+  ctx.reply("📦 Введите ID заказа:");
+  adminState[ctx.from.id] = "enter_orderId";
 });
 
 bot.hears('📢 Рассылка', (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply('✏️ Введи текст рассылки:');
-  adminState[ctx.from.id] = 'broadcast';
+  ctx.reply("✏️ Введи текст рассылки:");
+  adminState[ctx.from.id] = "broadcast";
 });
 
-// --- ЄДИНИЙ обробник текстів (адмінські state + форма юзера) ---
+// --- Обробник текстів ---
 bot.on('text', async (ctx) => {
   const userId = ctx.from.id;
   const text = ctx.message.text.trim();
 
-  // Адмінські state
-  if (userId === ADMIN_ID) {
+  // --- Адмінські state ---
+  if (userId === ADMIN_ID && adminState[userId]) {
     const state = adminState[userId];
-    if (!state) return; // дозволяємо bot.hears спрацьовувати на кнопки
 
-    if (state === 'update_stock') {
+    if (state === "update_stock") {
       const newStock = parseInt(text);
       if (!isNaN(newStock) && newStock >= 0) {
         stock = newStock;
         await ctx.reply(`✅ Количество наборов обновлено: ${stock}`);
       } else {
-        await ctx.reply('❌ Введите корректное число');
+        await ctx.reply("❌ Введите корректное число");
       }
       adminState[userId] = null;
       return;
     }
 
-    if (state === 'enter_orderId') {
-      adminState[userId] = { step: 'enter_tracking', orderId: text };
-      return ctx.reply('✏️ Введите трек-номер:');
+    if (state === "enter_orderId") {
+      adminState[userId] = { step: "enter_tracking", orderId: text };
+      return ctx.reply("✏️ Введите трек-номер:");
     }
 
-    if (state?.step === 'enter_tracking') {
-      const trackNumber = text;
+    if (state?.step === "enter_tracking") {
       const order = orders.find(o => o.id === state.orderId);
-      if (order) {
-        const lang = getLang(order.userId);
-        const msg = buildTrackingMessage(lang, trackNumber);
-        await bot.telegram.sendMessage(order.userId, msg, { parse_mode: 'Markdown' });
-        await ctx.reply(`✅ Трек-номер отправлен пользователю (🆔 ${order.id})`);
-        stock = Math.max(0, stock - 1);
-      } else {
-        await ctx.reply('❌ Заказ не найден');
+      if (!order) {
+        await ctx.reply("❌ Заказ не найден");
+        adminState[userId] = null;
+        return;
       }
+      const trackNumber = text;
+      await bot.telegram.sendMessage(order.userId, `📦 Ваш заказ отправлен!\nТрек-номер: ${trackNumber}`);
+      await ctx.reply(`✅ Трек-номер отправлен пользователю (🆔 ${order.id})`);
+      stock = Math.max(0, stock - 1);
       adminState[userId] = null;
       return;
     }
 
-    if (state === 'broadcast') {
+    if (state === "broadcast") {
       let success = 0, fail = 0;
-      for (const id of userIds) {
+      for (let id of userIds) {
         try {
-          await bot.telegram.sendMessage(id, text, { parse_mode: 'Markdown' });
+          await bot.telegram.sendMessage(id, text, { parse_mode: "Markdown" });
           success++;
         } catch {
           fail++;
@@ -237,28 +221,26 @@ bot.on('text', async (ctx) => {
     }
   }
 
-  // Форма юзера
+  // --- Форма юзера ---
   const order = userOrders[userId];
   if (!order) return;
   const lang = order.lang;
 
   switch (order.step) {
-    case 'name': {
-      if (text.split(' ').length < 2) {
+    case 'name':
+      if (text.split(" ").length < 2) {
         return ctx.reply(formTranslations[lang].errorName);
       }
       order.data.name = text;
       order.step = 'address';
       return ctx.reply(formTranslations[lang].askAddress);
-    }
 
-    case 'address': {
+    case 'address':
       order.data.address = text;
       order.step = 'email';
       return ctx.reply(formTranslations[lang].askEmail);
-    }
 
-    case 'email': {
+    case 'email':
       const email = text.trim();
       if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
         return ctx.reply(formTranslations[lang].errorEmail);
@@ -266,23 +248,18 @@ bot.on('text', async (ctx) => {
       order.data.email = email;
       order.step = 'phone';
       return ctx.reply(formTranslations[lang].askPhone);
-    }
 
-    case 'phone': {
+    case 'phone':
       const phone = text.trim();
       if (!/^\+\d{9,15}$/.test(phone)) {
-        return ctx.reply(formTranslations[lang].errorPhone || '❌ Невірний формат телефону. Приклад: +380931234567');
+        return ctx.reply(formTranslations[lang].errorPhone || "❌ Невірний формат телефону. Приклад: +380931234567");
       }
       order.data.phone = phone;
       order.step = 'payment';
-      return ctx.reply(
-        formTranslations[lang].askPayment,
-        Markup.inlineKeyboard([
-          [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
-          [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')],
-        ])
-      );
-    }
+      return ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
+        [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
+        [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')]
+      ]));
   }
 });
 
@@ -305,7 +282,7 @@ bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
     ? formTranslations[lang].paypalMsg(order.data.price, orderId)
     : formTranslations[lang].sepaMsg(order.data.price, orderId);
 
-  await ctx.reply(messageText, { parse_mode: 'Markdown', disable_web_page_preview: true });
+  await ctx.reply(messageText, { parse_mode: "Markdown", disable_web_page_preview: true });
 
   const orderSummary = `
 🆔 Заказ: ${orderId}
@@ -331,19 +308,19 @@ bot.on('photo', async (ctx) => {
   await ctx.telegram.sendPhoto(ADMIN_ID, photoId, {
     caption: `🖼 Подтверждение оплаты\n🆔 Заказ: ${order.id}`,
     reply_markup: {
-      inline_keyboard: [[{ text: '✅ Подтвердить оплату', callback_data: `confirm_${order.id}` }]],
-    },
+      inline_keyboard: [[{ text: "✅ Подтвердить оплату", callback_data: `confirm_${order.id}` }]]
+    }
   });
 
   ctx.reply(formTranslations[lang].paymentSent);
 });
 
-// --- Підтвердження оплати адміном ---
+// --- Підтвердження оплати ---
 bot.action(/confirm_(.+)/, async (ctx) => {
   await ctx.answerCbQuery();
   const orderId = ctx.match[1];
   const order = orders.find(o => o.id === orderId);
-  if (!order) return ctx.reply('❌ Заказ не найден');
+  if (!order) return ctx.reply("❌ Заказ не найден");
 
   const lang = order.lang;
   await bot.telegram.sendMessage(order.userId, formTranslations[lang].paymentConfirmed);
