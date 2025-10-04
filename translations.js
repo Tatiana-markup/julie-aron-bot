@@ -38,7 +38,35 @@ const formTranslations = {
     sepaMsg: (price, id) => `🏦 SEPA-Überweisung\nEmpfänger: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nBetrag: ${price} €\nVerwendungszweck: Julii & Aron Bestellung ${price}\n\nBitte zahlen Sie und senden Sie einen Screenshot.\n🆔 Bestellung: ${id}`,
     orderNotFound: "⚠️ Wir haben keine aktive Bestellung von Ihnen gefunden.",
     paymentSent: "✅ Danke! Ihre Zahlungsbestätigung wurde an den Administrator gesendet.\nUnser Manager wird sie prüfen und bestätigen.",
-    paymentConfirmed: "✅ Ihre Zahlung wurde bestätigt. Bitte warten Sie auf die Sendungsverfolgungsnummer."
+    paymentConfirmed: "✅ Ihre Zahlung wurde bestätigt. Bitte warten Sie auf die Sendungsverfolgungsnummer.",
+      paymentInfo: `💳 *Zahlungsbedingungen*
+      Wir akzeptieren Zahlungen über:  
+      - PayPal  
+      - Banküberweisung (SEPA)  
+
+      Nach der Bestellung erhalten Sie alle Anweisungen.  
+      Die Zahlung muss innerhalb von 24 Stunden erfolgen.`,
+
+    shippingInfo: `🚚 *Lieferdienste*
+      Wir versenden Bestellungen mit DHL — innerhalb Deutschlands und in die Länder der Europäischen Union.
+
+      ⏱ *Lieferzeiten*
+      - Deutschland: 1–3 Werktage  
+      - EU-Länder: 3–8 Werktage  
+
+      💰 *Versandkosten*
+      - Innerhalb Deutschlands: 4,90 €  
+      - EU-Länder: 9,90 € Pauschalbetrag.  
+      Wir sind nicht umsatzsteuerpflichtig.
+
+      📦 *Sendungsverfolgung*
+      Nach dem Versand erhalten Sie eine Bestätigung mit Sendungsnummer und Link.
+
+      ⚠️ *Mögliche Verzögerungen*
+      An Feiertagen oder bei hoher Auslastung der Lieferdienste kann es zu Verzögerungen kommen.`,
+
+    questionsInfo: `❓ *Fragen*
+      Wenn Sie Fragen zu Ihrer Bestellung oder Lieferung haben — schreiben Sie uns direkt im Chat und wir antworten so schnell wie möglich.`
   },
   en: {
     askName: "Please enter your full name (First + Last):",
@@ -55,7 +83,35 @@ const formTranslations = {
     sepaMsg: (price, id) => `🏦 SEPA Transfer\nRecipient: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nAmount: ${price} €\nPurpose: Julii & Aron Order ${price}\n\nPlease pay and send a screenshot.\n🆔 Order ID: ${id}`,
     orderNotFound: "⚠️ We couldn't find your active order.",
     paymentSent: "✅ Thank you! Your payment confirmation has been sent to the administrator.\nOur manager will review and confirm it.",
-    paymentConfirmed: "✅ Your payment has been confirmed. Please wait for the tracking number."
+    paymentConfirmed: "✅ Your payment has been confirmed. Please wait for the tracking number.",
+      paymentInfo: `💳 *Payment terms*
+      We accept payments via:  
+      - PayPal  
+      - Bank transfer (SEPA)  
+
+      After placing your order, you will receive detailed instructions.  
+      Payment should be made within 24 hours.`,
+
+          shippingInfo: `🚚 *Delivery Services*
+      We ship orders with DHL — across Germany and to the European Union.
+
+      ⏱ *Delivery times*
+      - Germany: 1–3 business days  
+      - EU countries: 3–8 business days  
+
+      💰 *Shipping costs*
+      - Within Germany: €4.90  
+      - EU countries: €9.90 flat rate.  
+      We are not subject to VAT.
+
+      📦 *Order tracking*
+      After shipping, you will receive a confirmation with a tracking number and link.
+
+      ⚠️ *Possible delays*
+      During holidays or peak periods, delivery services may experience delays.`,
+
+          questionsInfo: `❓ *Questions*
+      If you have any questions about your order or delivery — write to us in chat and we’ll respond as soon as possible.`
   },
   ru: {
     askName: "Введите имя и фамилию:",
@@ -72,8 +128,35 @@ const formTranslations = {
     sepaMsg: (price, id) => `🏦 SEPA-перевод\nПолучатель: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nСумма: ${price} €\nНазначение: Julii & Aron Bestellung ${price}\n\nПожалуйста, оплатите и отправьте скриншот.\n🆔 Номер заказа: ${id}`,
     orderNotFound: "⚠️ У нас нет вашего активного заказа.",
     paymentSent: "✅ Спасибо! Ваше подтверждение отправлено администратору.\nНаш менеджер проверит его и подтвердит заказ.",
-    paymentConfirmed: "✅ Ваша оплата подтверждена. Ожидайте трек-номер отправления."
-  }
+    paymentConfirmed: "✅ Ваша оплата подтверждена. Ожидайте трек-номер отправления.",
+    paymentInfo: `💳 *Условия оплаты*
+    Мы принимаем оплату двумя способами:  
+    - PayPal  
+    - Банковский перевод (SEPA)  
+
+    После оформления заказа вы получите все инструкции.  
+    Оплата должна быть произведена в течение 24 часов.`,
+
+        shippingInfo: `🚚 *Службы доставки*
+    Мы отправляем заказы с помощью DHL — по всей Германии и в страны Европейского Союза.
+
+    ⏱ *Сроки доставки*
+    - Германия: 1–3 рабочих дня  
+    - Страны ЕС: 3–8 рабочих дней  
+
+    💰 *Стоимость доставки*
+    - Германия: 4,90 €  
+    - Страны ЕС: 9,90 € фиксированная ставка.  
+    Мы не являемся плательщиками НДС.
+
+    📦 *Отслеживание заказа*
+    После отправки вы получите подтверждение с трек-номером и ссылкой для отслеживания.
+
+    ⚠️ *Возможные задержки*
+    В праздничные дни или при высокой нагрузке на службы доставки возможны задержки.`,
+
+        questionsInfo: `❓ *Вопросы*
+    Если у вас возникли вопросы по заказу или доставке — напишите нам прямо в чат, и мы ответим в ближайшее время.`
 };
 
 module.exports = { translations, formTranslations };

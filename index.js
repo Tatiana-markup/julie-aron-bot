@@ -85,6 +85,27 @@ bot.action(['lang_de', 'lang_en', 'lang_ru'], async (ctx) => {
     ]),
   });
 });
+// --- Условия оплаты ---
+bot.action('payment', async (ctx) => {
+  const lang = getLang(ctx.from.id);
+  await ctx.answerCbQuery();
+  return ctx.reply(formTranslations[lang].paymentInfo, { parse_mode: 'Markdown' });
+});
+
+// --- Условия доставки ---
+bot.action('shipping', async (ctx) => {
+  const lang = getLang(ctx.from.id);
+  await ctx.answerCbQuery();
+  return ctx.reply(formTranslations[lang].shippingInfo, { parse_mode: 'Markdown' });
+});
+
+// --- Вопросы ---
+bot.action('questions', async (ctx) => {
+  const lang = getLang(ctx.from.id);
+  await ctx.answerCbQuery();
+  return ctx.reply(formTranslations[lang].questionsInfo, { parse_mode: 'Markdown' });
+});
+
 
 // --- Кнопка «Купити за 63 €» ---
 bot.action('order', async (ctx) => {
