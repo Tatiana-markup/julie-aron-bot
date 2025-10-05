@@ -40,6 +40,13 @@ const formTranslations = {
     paymentSent: "✅ Danke! Ihre Zahlungsbestätigung wurde an den Administrator gesendet.\nUnser Manager wird sie prüfen und bestätigen.",
     paymentConfirmed: "✅ Ihre Zahlung wurde bestätigt. Bitte warten Sie auf die Sendungsverfolgungsnummer.",
 
+    // 🆕 Переклади для підписки
+    subscribe: "Bitte abonniere unseren Kanal, um den Rabatt zu erhalten 👇",
+    subscribeBtn: "📢 Kanal abonnieren",
+    checkSub: "✅ Ich habe abonniert",
+    buyNoSub: "💰 Ohne Rabatt kaufen (70 €)",
+    notSubscribed: "❌ Du bist noch nicht abonniert. Bitte abonniere zuerst den Kanal, um den Rabatt zu erhalten.",
+
     paymentInfo: `💳 *Zahlungsbedingungen*
 Wir akzeptieren Zahlungen über:  
 - PayPal  
@@ -87,6 +94,13 @@ Wenn Sie Fragen zu Ihrer Bestellung oder Lieferung haben — schreiben Sie uns d
     paymentSent: "✅ Thank you! Your payment confirmation has been sent to the administrator.\nOur manager will review and confirm it.",
     paymentConfirmed: "✅ Your payment has been confirmed. Please wait for the tracking number.",
 
+    // 🆕 Переклади для підписки
+    subscribe: "Please subscribe to our channel to receive your discount 👇",
+    subscribeBtn: "📢 Subscribe to the channel",
+    checkSub: "✅ I’ve subscribed",
+    buyNoSub: "💰 Buy without discount (€70)",
+    notSubscribed: "❌ You are not subscribed yet. Please subscribe first to get the discount.",
+
     paymentInfo: `💳 *Payment terms*
 We accept payments via:  
 - PayPal  
@@ -133,6 +147,13 @@ If you have any questions about your order or delivery — write to us in chat a
     orderNotFound: "⚠️ У нас нет вашего активного заказа.",
     paymentSent: "✅ Спасибо! Ваше подтверждение отправлено администратору.\nНаш менеджер проверит его и подтвердит заказ.",
     paymentConfirmed: "✅ Ваша оплата подтверждена. Ожидайте трек-номер отправления.",
+
+    // 🆕 Переклади для підписки
+    subscribe: "Пожалуйста, подпишись на наш канал, чтобы получить скидку 👇",
+    subscribeBtn: "📢 Подписаться на канал",
+    checkSub: "✅ Я подписался",
+    buyNoSub: "💰 Купить без скидки (70 €)",
+    notSubscribed: "❌ Вы ещё не подписаны. Пожалуйста, подпишитесь, чтобы получить скидку.",
 
     paymentInfo: `💳 *Условия оплаты*
 Мы принимаем оплату двумя способами:  
