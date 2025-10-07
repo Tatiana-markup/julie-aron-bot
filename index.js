@@ -313,27 +313,33 @@ bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
       }
     });
 
-bot.action('change_payment', async (ctx) => {
+    // --- Обробка кнопки "Изменить способ оплаты" ---
+    bot.action('change_payment', async (ctx) => {
       await ctx.answerCbQuery();
       const userId = ctx.from.id;
-      const lang = userLanguage[userId] || 'ru';
-      const order = userOrders[userId] || lastOrderFor(userId);
+      const order = lastOrderFor(userId);
 
       if (!order) {
-        return ctx.reply(formTranslations[lang].orderNotFound || "⚠️ Заказ не найден.");
+        return ctx.reply("⚠️ Не удалось найти заказ. Пожалуйста, начните заново командой /start");
       }
 
-      order.step = 'payment';
+      const lang = order.lang || getLang(userId);
+
+      order.step = "payment"; // важливо! ставимо знову крок вибору оплати
 
       await ctx.reply(formTranslations[lang].askPayment, {
+        parse_mode: "Markdown",
         reply_markup: {
           inline_keyboard: [
-            [{ text: formTranslations[lang].payPaypal, callback_data: 'pay_paypal' }],
-            [{ text: formTranslations[lang].paySepa, callback_data: 'pay_sepa' }]
+            [
+              { text: formTranslations[lang].payPaypal, callback_data: "pay_paypal" },
+              { text: formTranslations[lang].paySepa, callback_data: "pay_sepa" }
+            ]
           ]
         }
       });
     });
+
 
 
   const orderSummary = `
