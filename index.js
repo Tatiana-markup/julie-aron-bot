@@ -303,7 +303,38 @@ bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
     ? formTranslations[lang].paypalMsg(order.data.price, orderId)
     : formTranslations[lang].sepaMsg(order.data.price, orderId);
 
-  await ctx.reply(messageText, { parse_mode: "Markdown", disable_web_page_preview: true });
+    await ctx.reply(messageText, {
+      parse_mode: "Markdown",
+      disable_web_page_preview: true,
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: formTranslations[lang].changePayment, callback_data: 'change_payment' }]
+        ]
+      }
+    });
+
+bot.action('change_payment', async (ctx) => {
+      await ctx.answerCbQuery();
+      const userId = ctx.from.id;
+      const lang = userLanguage[userId] || 'ru';
+      const order = userOrders[userId] || lastOrderFor(userId);
+
+      if (!order) {
+        return ctx.reply(formTranslations[lang].orderNotFound || "⚠️ Заказ не найден.");
+      }
+
+      order.step = 'payment';
+
+      await ctx.reply(formTranslations[lang].askPayment, {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: formTranslations[lang].payPaypal, callback_data: 'pay_paypal' }],
+            [{ text: formTranslations[lang].paySepa, callback_data: 'pay_sepa' }]
+          ]
+        }
+      });
+    });
+
 
   const orderSummary = `
 🆔 Заказ: ${orderId}
