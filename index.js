@@ -312,8 +312,7 @@ bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
         ]
       }
     });
-
-    // --- Обробка кнопки "Изменить способ оплаты" ---
+// --- Обробка кнопки "Изменить способ оплаты" ---
     bot.action('change_payment', async (ctx) => {
       await ctx.answerCbQuery();
       const userId = ctx.from.id;
@@ -325,7 +324,11 @@ bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
 
       const lang = order.lang || getLang(userId);
 
-      order.step = "payment"; // важливо! ставимо знову крок вибору оплати
+      // 🔥 Зберігаємо стан, щоб нові кнопки знову працювали
+      userOrders[userId] = {
+        ...order,
+        step: "payment",
+      };
 
       await ctx.reply(formTranslations[lang].askPayment, {
         parse_mode: "Markdown",
@@ -339,8 +342,6 @@ bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
         }
       });
     });
-
-
 
   const orderSummary = `
 🆔 Заказ: ${orderId}
