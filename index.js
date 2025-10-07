@@ -255,12 +255,25 @@ bot.on('text', async (ctx) => {
       order.data.name = text;
       order.step = 'address';
       return ctx.reply(formTranslations[lang].askAddress);
+          case "address":
+            // ✅ Перевірка адреси на латиницю, цифри, базові символи
+            if (!/^[A-Za-z0-9\s,.'-]+$/.test(text)) {
+              return ctx.reply(formTranslations[lang].errorLatinAddress);
+            }
 
-    case 'address':
-      order.data.address = text;
-      order.step = 'email';
-      return ctx.reply(formTranslations[lang].askEmail);
+            order.data.address = text;
+            order.step = "email";
+            return ctx.reply(formTranslations[lang].askEmail);
 
+      case "name":
+        if (text.split(" ").length < 2) {
+          return ctx.reply(formTranslations[lang].errorName);
+        }
+        // ✅ Перевірка на латиницю
+        if (!/^[A-Za-z\s'-]+$/.test(text)) {
+          return ctx.reply(formTranslations[lang].errorLatinName);
+        }
+        order.data.name = text;
     case 'email':
       const email = text.trim();
       if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
