@@ -1,20 +1,20 @@
 const translations = {
   de: {
-    welcome: "💎 Deine Chance auf einen Duft, den man nie vergisst\n\nStatt €600 — nur €63 für ein Set aus drei luxuriösen Düften:\n\n✨ Red Crystal (ähnlich wie Baccarat Rouge 540) — Energie der Begierde in jeder Note.\n🌸 Rive Droite (ähnlich wie Fleur Narcotic) — Raffinesse und Leichtigkeit für den Alltag.\n🔥 Nossi (exklusiv) — ein Duft, der beeindruckt.\n\nEnthält 150 ml + 15 ml Proben.\n🔐 Nur 20 Sets — Exklusivität, die im Nu verschwindet.",
+      welcome: "💎 *Deine Chance auf einen Duft, den man nie vergisst*\n\n✨ *Red Crystal* (ähnlich wie Baccarat Rouge 540) — die Energie des Verlangens in jeder Note.\n\n🌸 *Rive Droite* (ähnlich wie Fleur Narcotic) — Raffinesse und Leichtigkeit für jeden Tag.\n\n🔥 *Nossi* (exklusiv) — ein Duft, der beeindruckt.\n\n🧴 *Im Set enthalten:*\n3 Flakons à 50 ml = 150 ml Hauptdüfte\n\n5 Proben à 3 ml = 15 ml Bonusaromen\n\n***Insgesamt — 8 Düfte für nur €63 statt €600.***\n\n🔐 Nur 20 Sets — sei schnell, bevor sie verschwinden!",
     order: "🛒 Bestellen für 63 €",
     payment: "💳 Zahlungsbedingungen",
     shipping: "📦 Lieferbedingungen",
     questions: "❓ Fragen"
   },
   en: {
-    welcome: "💎 Your chance to own a fragrance you’ll never forget\n\nInstead of €600 — only €63 for a set of three luxury scents:\n\n✨ Red Crystal (like Baccarat Rouge 540) — the energy of desire in every note.\n🌸 Rive Droite (like Fleur Narcotic) — elegance and lightness for every day.\n🔥 Nossi (exclusive) — a fragrance made to impress.\n\nIncludes 150 ml + 15 ml testers.\n🔐 Only 20 sets — exclusivity that vanishes before your eyes.",
+      welcome: "💎 *Your chance to own a fragrance you’ll never forget*\n\n✨ *Red Crystal* (like Baccarat Rouge 540) — the energy of desire in every note.\n\n🌸 *Rive Droite* (like Fleur Narcotic) — elegance and lightness for every day.\n\n🔥 *Nossi* (exclusive) — a fragrance made to impress.\n\n🧴 *Included in the set:*\n3 bottles of 50 ml = 150 ml of main fragrances\n\n5 samples of 3 ml = 15 ml of bonuses\n\n***Total — 8 fragrances for only €63 instead of €600.***\n\n🔐 Only 20 sets — hurry before they’re gone!",
     order: "🛒 Order for €63",
     payment: "💳 Payment terms",
     shipping: "📦 Shipping terms",
     questions: "❓ Questions"
   },
   ru: {
-    welcome: "💎 Твой шанс на аромат, который невозможно забыть\n\nВместо €600 — всего €63 за набор из трёх роскошных ароматов:\n\n✨ Red Crystal (как Baccarat Rouge 540) — энергия желания в каждой ноте.\n🌸 Rive Droite (как Fleur Narcotic) — изысканность и лёгкость на каждый день.\n🔥 Nossi (эксклюзив) — аромат, созданный впечатлять.\n\nВ комплекте 150 мл + 15 мл пробников.\n🔐 Всего 20 наборов — эксклюзивность, исчезающая на глазах.",
+      welcome: "💎 *Твой шанс на аромат, который невозможно забыть*\n\n✨ *Red Crystal* (как Baccarat Rouge 540) — энергия желания в каждой ноте.\n\n🌸 *Rive Droite* (как Fleur Narcotic) — изысканность и лёгкость на каждый день.\n\n🔥 *Nossi* (авторский эксклюзив) — аромат, созданный впечатлять.\n\n🧴 *В наборе:*\n3 флакона по 50 мл = 150 мл основных ароматов\n\n5 пробников по 3 мл = 15 мл бонусов\n\n***Итого — 8 ароматов за €63 вместо €600.***\n\n🔐 Всего 20 наборов — успей, пока они не исчезли!",
     order: "🛒 Заказать за 63 €",
     payment: "💳 Условия оплаты",
     shipping: "📦 Условия доставки",
