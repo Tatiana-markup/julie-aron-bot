@@ -75,38 +75,127 @@ bot.action(['lang_de', 'lang_en', 'lang_ru'], async (ctx) => {
   const lang = ctx.callbackQuery.data.split('_')[1] || 'en';
   userLanguage[ctx.from.id] = lang;
 
-  return ctx.editMessageText(translations[lang].welcome, {
-    parse_mode: 'Markdown',
-    ...Markup.inlineKeyboard([
-      [Markup.button.callback(translations[lang].order, 'order')],
-      [Markup.button.callback(translations[lang].payment, 'payment')],
-      [Markup.button.callback(translations[lang].shipping, 'shipping')],
-      [Markup.button.callback(translations[lang].questions, 'questions')],
-    ]),
-  });
+// --- Головне меню після вибору мови ---
+    return ctx.editMessageText(translations[lang].welcome, {
+      parse_mode: 'Markdown',
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback(translations[lang].order, 'order')],
+        [Markup.button.callback(translations[lang].fragrances, 'fragrances')],
+        [Markup.button.callback(translations[lang].payment, 'payment')],
+        [Markup.button.callback(translations[lang].shipping, 'shipping')],
+        [Markup.button.callback(translations[lang].questions, 'questions')],
+      ]),
+    });
 });
-// --- Условия оплаты ---
-bot.action('payment', async (ctx) => {
-  const lang = getLang(ctx.from.id);
-  await ctx.answerCbQuery();
-  return ctx.reply(formTranslations[lang].paymentInfo, { parse_mode: 'Markdown' });
-});
+    // --- Про аромати / About the fragrances ---
+    bot.action('fragrances', async (ctx) => {
+      const lang = getLang(ctx.from.id);
+      await ctx.answerCbQuery();
 
-// --- Условия доставки ---
-bot.action('shipping', async (ctx) => {
-  const lang = getLang(ctx.from.id);
-  await ctx.answerCbQuery();
-  return ctx.reply(formTranslations[lang].shippingInfo, { parse_mode: 'Markdown' });
-});
+      return ctx.editMessageText(
+        "💠 Выберите аромат, чтобы узнать больше:",
+        {
+          parse_mode: "Markdown",
+          ...Markup.inlineKeyboard([
+            [
+              Markup.button.callback("✨ Red Crystal", "aroma_red"),
+              Markup.button.callback("🌸 Rive Droite", "aroma_rive"),
+            ],
+            [
+              Markup.button.callback("🔥 Nossi", "aroma_nossi"),
+            ],
+            [
+              Markup.button.callback(formTranslations[lang].back, "back_to_menu"),
+            ],
+          ]),
+        }
+      );
+    });
 
-// --- Вопросы ---
-bot.action('questions', async (ctx) => {
-  const lang = getLang(ctx.from.id);
-  await ctx.answerCbQuery();
-  return ctx.reply(formTranslations[lang].questionsInfo, { parse_mode: 'Markdown' });
-});
+    // --- Обробка кнопок ароматів ---
+    bot.action(["aroma_red", "aroma_rive", "aroma_nossi"], async (ctx) => {
+      const lang = getLang(ctx.from.id);
+      await ctx.answerCbQuery();
 
+      let text = "";
+      if (ctx.callbackQuery.data === "aroma_red") text = formTranslations[lang].aromaRed;
+      if (ctx.callbackQuery.data === "aroma_rive") text = formTranslations[lang].aromaRive;
+      if (ctx.callbackQuery.data === "aroma_nossi") text = formTranslations[lang].aromaNossi;
 
+      return ctx.editMessageText(text, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [
+            Markup.button.callback("✨ Red Crystal", "aroma_red"),
+            Markup.button.callback("🌸 Rive Droite", "aroma_rive"),
+          ],
+          [
+            Markup.button.callback("🔥 Nossi", "aroma_nossi"),
+          ],
+          [
+            Markup.button.callback(formTranslations[lang].back, "back_to_menu"),
+          ],
+        ]),
+      });
+    });
+
+    // --- Условия оплаты ---
+    bot.action('payment', async (ctx) => {
+      const lang = getLang(ctx.from.id);
+      await ctx.answerCbQuery();
+
+      return ctx.editMessageText(formTranslations[lang].paymentInfo, {
+        parse_mode: 'Markdown',
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback(formTranslations[lang].back, "back_to_menu")],
+        ]),
+      });
+    });
+
+    // --- Условия доставки ---
+    bot.action('shipping', async (ctx) => {
+      const lang = getLang(ctx.from.id);
+      await ctx.answerCbQuery();
+
+      return ctx.editMessageText(formTranslations[lang].shippingInfo, {
+        parse_mode: 'Markdown',
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback(formTranslations[lang].back, "back_to_menu")],
+        ]),
+      });
+    });
+
+    // --- Вопросы ---
+    bot.action('questions', async (ctx) => {
+      const lang = getLang(ctx.from.id);
+      await ctx.answerCbQuery();
+
+      return ctx.editMessageText(formTranslations[lang].questionsInfo, {
+        parse_mode: 'Markdown',
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback(formTranslations[lang].back, "back_to_menu")],
+        ]),
+      });
+    });
+
+    // --- Кнопка «Назад» до головного меню ---
+    bot.action("back_to_menu", async (ctx) => {
+      const lang = getLang(ctx.from.id);
+      await ctx.answerCbQuery();
+
+      return ctx.editMessageText(translations[lang].welcome, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback(translations[lang].order, 'order')],
+          [Markup.button.callback(translations[lang].fragrances, 'fragrances')],
+          [Markup.button.callback(translations[lang].payment, 'payment')],
+          [Markup.button.callback(translations[lang].shipping, 'shipping')],
+          [Markup.button.callback(translations[lang].questions, 'questions')],
+        ]),
+      });
+    });
+
+    
 // --- Кнопка «Купити за 63 €» ---
 bot.action('order', async (ctx) => {
   await ctx.answerCbQuery();
@@ -252,6 +341,9 @@ bot.on('text', async (ctx) => {
       if (text.split(" ").length < 2) {
         return ctx.reply(formTranslations[lang].errorName);
       }
+    if (!/^[A-Za-z\s'-]+$/.test(text)) {
+              return ctx.reply(formTranslations[lang].errorLatinName);
+            }
       order.data.name = text;
       order.step = 'address';
       return ctx.reply(formTranslations[lang].askAddress);
@@ -264,16 +356,6 @@ bot.on('text', async (ctx) => {
             order.data.address = text;
             order.step = "email";
             return ctx.reply(formTranslations[lang].askEmail);
-
-      case "name":
-        if (text.split(" ").length < 2) {
-          return ctx.reply(formTranslations[lang].errorName);
-        }
-        // ✅ Перевірка на латиницю
-        if (!/^[A-Za-z\s'-]+$/.test(text)) {
-          return ctx.reply(formTranslations[lang].errorLatinName);
-        }
-        order.data.name = text;
     case 'email':
       const email = text.trim();
       if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
@@ -316,45 +398,15 @@ bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
     ? formTranslations[lang].paypalMsg(order.data.price, orderId)
     : formTranslations[lang].sepaMsg(order.data.price, orderId);
 
-    await ctx.reply(messageText, {
-      parse_mode: "Markdown",
-      disable_web_page_preview: true,
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: formTranslations[lang].changePayment, callback_data: 'change_payment' }]
-        ]
-      }
-    });
-// --- Обробка кнопки "Изменить способ оплаты" ---
-    bot.action('change_payment', async (ctx) => {
-      await ctx.answerCbQuery();
-      const userId = ctx.from.id;
-      const order = lastOrderFor(userId);
-
-      if (!order) {
-        return ctx.reply("⚠️ Не удалось найти заказ. Пожалуйста, начните заново командой /start");
-      }
-
-      const lang = order.lang || getLang(userId);
-
-      // 🔥 Зберігаємо стан, щоб нові кнопки знову працювали
-      userOrders[userId] = {
-        ...order,
-        step: "payment",
-      };
-
-      await ctx.reply(formTranslations[lang].askPayment, {
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: formTranslations[lang].payPaypal, callback_data: "pay_paypal" },
-              { text: formTranslations[lang].paySepa, callback_data: "pay_sepa" }
-            ]
-          ]
-        }
-      });
-    });
+  await ctx.reply(messageText, {
+    parse_mode: "Markdown",
+    disable_web_page_preview: true,
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: formTranslations[lang].changePayment, callback_data: 'change_payment' }]
+      ]
+    }
+  });
 
   const orderSummary = `
 🆔 Заказ: ${orderId}
@@ -369,6 +421,38 @@ bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
 
   delete userOrders[ctx.from.id];
 });
+
+// --- Обробка кнопки "Изменить способ оплаты" ---
+bot.action('change_payment', async (ctx) => {
+  await ctx.answerCbQuery();
+  const userId = ctx.from.id;
+  const order = lastOrderFor(userId);
+
+  if (!order) {
+    return ctx.reply("⚠️ Не удалось найти заказ. Пожалуйста, начните заново командой /start");
+  }
+
+  const lang = order.lang || getLang(userId);
+
+  // 🔥 Зберігаємо стан, щоб нові кнопки знову працювали
+  userOrders[userId] = {
+    ...order,
+    step: "payment",
+  };
+
+  await ctx.reply(formTranslations[lang].askPayment, {
+    parse_mode: "Markdown",
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: formTranslations[lang].payPaypal, callback_data: "pay_paypal" },
+          { text: formTranslations[lang].paySepa, callback_data: "pay_sepa" }
+        ]
+      ]
+    }
+  });
+});
+
 
 // --- Фото (чек) ---
 bot.on('photo', async (ctx) => {
