@@ -410,25 +410,21 @@ bot.on('text', async (ctx) => {
       ]));
   }
 });
-
-// --- Оплата ---
+// --- Оплата (вибір способу) ---
 bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
   await ctx.answerCbQuery();
-  const order = userOrders[ctx.from.id];
+  const userId = ctx.from.id;
+  const order = userOrders[userId];
   if (!order) return;
 
   const lang = order.lang;
-  const orderId = Date.now().toString();
   const isPaypal = ctx.callbackQuery.data === 'pay_paypal';
-
   order.data.payment = isPaypal ? 'PayPal' : 'SEPA';
-  order.id = orderId;
-  order.userId = ctx.from.id;
-  orders.push(order);
+  order.step = 'payment_chosen'; // позначаємо, що спосіб вибрано
 
   const messageText = isPaypal
-    ? formTranslations[lang].paypalMsg(order.data.price, orderId)
-    : formTranslations[lang].sepaMsg(order.data.price, orderId);
+    ? formTranslations[lang].paypalMsg(order.data.price)
+    : formTranslations[lang].sepaMsg(order.data.price);
 
   await ctx.reply(messageText, {
     parse_mode: "Markdown",
@@ -439,26 +435,14 @@ bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
       ]
     }
   });
-
-  const orderSummary = `
-🆔 Заказ: ${orderId}
-👤 Имя: ${order.data.name}
-🏠 Адрес: ${order.data.address}
-✉️ Email: ${order.data.email}
-📱 Телефон: ${order.data.phone}
-💳 Оплата: ${order.data.payment}
-💰 Сумма: ${order.data.price} €
-  `;
-  if (ADMIN_ID) await ctx.telegram.sendMessage(ADMIN_ID, `📦 Новый заказ:\n${orderSummary}`);
-
-    userOrders[ctx.from.id].step = null;
 });
+
 
 // --- Обробка кнопки "Изменить способ оплаты" ---
 bot.action('change_payment', async (ctx) => {
   await ctx.answerCbQuery();
   const userId = ctx.from.id;
-  const order = lastOrderFor(userId);
+  const order = userOrders[userId] || lastOrderFor(userId);
 
   if (!order) {
     return ctx.reply("⚠️ Не удалось найти заказ. Пожалуйста, начните заново командой /start");
@@ -466,7 +450,7 @@ bot.action('change_payment', async (ctx) => {
 
   const lang = order.lang || getLang(userId);
 
-  // 🔥 Зберігаємо стан, щоб нові кнопки знову працювали
+  // зберігаємо поточний стан замовлення
   userOrders[userId] = {
     ...order,
     step: "payment",
@@ -488,20 +472,33 @@ bot.action('change_payment', async (ctx) => {
 
 // --- Фото (чек) ---
 bot.on('photo', async (ctx) => {
-  const lang = getLang(ctx.from.id);
-  const order = lastOrderFor(ctx.from.id);
+  const userId = ctx.from.id;
+  const lang = getLang(userId);
+  const order = userOrders[userId];
+
   if (!order) return ctx.reply(formTranslations[lang].orderNotFound);
 
   const photoId = ctx.message.photo.at(-1).file_id;
+
+  // 🆕 Створюємо замовлення тільки зараз
+  const orderId = Date.now().toString();
+  order.id = orderId;
+  order.userId = userId;
+  order.data.paymentConfirmed = false;
+  orders.push(order);
+
+  // 🔔 Надсилаємо фото адміну
   await ctx.telegram.sendPhoto(ADMIN_ID, photoId, {
-    caption: `🖼 Подтверждение оплаты\n🆔 Заказ: ${order.id}`,
+    caption: `🖼 Подтверждение оплаты\n🆔 Заказ: ${orderId}\n👤 ${order.data.name}\n💰 ${order.data.price}€`,
     reply_markup: {
-      inline_keyboard: [[{ text: "✅ Подтвердить оплату", callback_data: `confirm_${order.id}` }]]
+      inline_keyboard: [[{ text: "✅ Подтвердить оплату", callback_data: `confirm_${orderId}` }]]
     }
   });
 
   ctx.reply(formTranslations[lang].paymentSent);
+  delete userOrders[userId];
 });
+
 
 // --- Підтвердження оплати ---
 bot.action(/confirm_(.+)/, async (ctx) => {
@@ -509,11 +506,15 @@ bot.action(/confirm_(.+)/, async (ctx) => {
   const orderId = ctx.match[1];
   const order = orders.find(o => o.id === orderId);
   if (!order) return ctx.reply("❌ Заказ не найден");
-    order.data.paymentConfirmed = true;
+
+  order.data.paymentConfirmed = true;
   const lang = order.lang;
   await bot.telegram.sendMessage(order.userId, formTranslations[lang].paymentConfirmed);
-  ctx.reply(`✅ Оплата по заказу ${orderId} подтверждена!`);
+
+  // ✅ повідомлення адміну
+  ctx.reply(`✅ Оплата по заказу *${orderId}* подтверждена!\n👤 ${order.data.name}\n💰 ${order.data.price}€`, { parse_mode: "Markdown" });
 });
+
 
 // --- Сервер ---
 const app = express();
