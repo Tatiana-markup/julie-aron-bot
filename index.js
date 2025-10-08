@@ -1,6 +1,3 @@
-// ✅ Оновлений стабільний код для Telegram-бота Julii & Aron
-// Підтримує перевірку підписки, відправку замовлень, підтвердження оплати, трек-номер і роботу адмінки.
-
 require('dotenv').config();
 const { Telegraf, Markup } = require('telegraf');
 const express = require('express');
@@ -106,6 +103,7 @@ bot.action('fragrances', async (ctx) => {
   });
 });
 
+// --- Обробка кнопок ароматів ---
 bot.action(['aroma_red', 'aroma_rive', 'aroma_nossi'], async (ctx) => {
   const lang = getLang(ctx.from.id);
   await ctx.answerCbQuery();
@@ -117,31 +115,47 @@ bot.action(['aroma_red', 'aroma_rive', 'aroma_nossi'], async (ctx) => {
   return ctx.editMessageText(text, {
     parse_mode: 'Markdown',
     ...Markup.inlineKeyboard([
-      [Markup.button.callback('✨ Red Crystal', 'aroma_red'), Markup.button.callback('🌸 Rive Droite', 'aroma_rive')],
+      [
+        Markup.button.callback('✨ Red Crystal', 'aroma_red'),
+        Markup.button.callback('🌸 Rive Droite', 'aroma_rive'),
+      ],
       [Markup.button.callback('🔥 Nossi', 'aroma_nossi')],
       [Markup.button.callback(formTranslations[lang].back, 'back_to_menu')],
     ]),
   });
 });
 
-// --- Оплата та доставка ---
-['payment', 'shipping', 'questions'].forEach(section => {
-  bot.action(section, async (ctx) => {
-    const lang = getLang(ctx.from.id);
-    await ctx.answerCbQuery();
-    const textMap = {
-      payment: formTranslations[lang].paymentInfo,
-      shipping: formTranslations[lang].shippingInfo,
-      questions: formTranslations[lang].questionsInfo,
-    };
-    return ctx.editMessageText(textMap[section], {
-      parse_mode: 'Markdown',
-      ...Markup.inlineKeyboard([[Markup.button.callback(formTranslations[lang].back, 'back_to_menu')]]),
-    });
+// --- Условия оплаты ---
+bot.action('payment', async (ctx) => {
+  const lang = getLang(ctx.from.id);
+  await ctx.answerCbQuery();
+  return ctx.editMessageText(formTranslations[lang].paymentInfo, {
+    parse_mode: 'Markdown',
+    ...Markup.inlineKeyboard([[Markup.button.callback(formTranslations[lang].back, 'back_to_menu')]]),
   });
 });
 
-// --- Назад ---
+// --- Условия доставки ---
+bot.action('shipping', async (ctx) => {
+  const lang = getLang(ctx.from.id);
+  await ctx.answerCbQuery();
+  return ctx.editMessageText(formTranslations[lang].shippingInfo, {
+    parse_mode: 'Markdown',
+    ...Markup.inlineKeyboard([[Markup.button.callback(formTranslations[lang].back, 'back_to_menu')]]),
+  });
+});
+
+// --- Вопросы ---
+bot.action('questions', async (ctx) => {
+  const lang = getLang(ctx.from.id);
+  await ctx.answerCbQuery();
+  return ctx.editMessageText(formTranslations[lang].questionsInfo, {
+    parse_mode: 'Markdown',
+    ...Markup.inlineKeyboard([[Markup.button.callback(formTranslations[lang].back, 'back_to_menu')]]),
+  });
+});
+
+// --- Кнопка «Назад» ---
 bot.action('back_to_menu', async (ctx) => {
   const lang = getLang(ctx.from.id);
   await ctx.answerCbQuery();
@@ -167,149 +181,17 @@ bot.action('order', async (ctx) => {
       userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
       return ctx.reply(formTranslations[lang].askName);
     } else {
-      return ctx.reply(formTranslations[lang].subscribe, Markup.inlineKeyboard([
-        [Markup.button.url(formTranslations[lang].subscribeBtn, `https://t.me/${CHANNEL_ID.replace('@', '')}`)],
-        [Markup.button.callback(formTranslations[lang].checkSub, 'check_sub')],
-        [Markup.button.callback(formTranslations[lang].buyNoSub, 'order_no_sub')],
-      ]));
+      return ctx.reply(
+        formTranslations[lang].subscribe || '🔔 Підпишіться, щоб отримати знижку!',
+        Markup.inlineKeyboard([
+          [Markup.button.url(formTranslations[lang].subscribeBtn || 'Підписатись', `https://t.me/${CHANNEL_ID.replace('@', '')}`)],
+          [Markup.button.callback(formTranslations[lang].checkSub || '✅ Я підписався', 'check_sub')],
+          [Markup.button.callback(formTranslations[lang].buyNoSub || '💸 Купити без знижки (70€)', 'order_no_sub')],
+        ])
+      );
     }
   } catch (err) {
     console.error('Error in order:', err);
     return ctx.reply('⚠️ Помилка при старті замовлення. Спробуйте ще раз.');
   }
 });
-
-bot.action('check_sub', async (ctx) => {
-  await ctx.answerCbQuery();
-  const lang = getLang(ctx.from.id);
-  if (await isSubscribed(ctx)) {
-    userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 63 } };
-    return ctx.reply(formTranslations[lang].askName);
-  } else {
-    return ctx.reply(formTranslations[lang].notSubscribed);
-  }
-});
-
-bot.action('order_no_sub', async (ctx) => {
-  await ctx.answerCbQuery();
-  const lang = getLang(ctx.from.id);
-  userOrders[ctx.from.id] = { step: 'name', lang, data: { price: 70 } };
-  return ctx.reply(formTranslations[lang].askName);
-});
-
-// --- Форма заповнення ---
-bot.on('text', async (ctx) => {
-  const userId = ctx.from.id;
-  const text = ctx.message.text.trim();
-  const order = userOrders[userId];
-  if (!order) return;
-  const lang = order.lang;
-
-  switch (order.step) {
-    case 'name':
-      if (!/^[A-Za-z\s'-]+$/.test(text)) return ctx.reply(formTranslations[lang].errorLatinName);
-      order.data.name = text;
-      order.step = 'address';
-      return ctx.reply(formTranslations[lang].askAddress);
-    case 'address':
-      if (!/^[A-Za-z0-9\s,.'-]+$/.test(text)) return ctx.reply(formTranslations[lang].errorLatinAddress);
-      order.data.address = text;
-      order.step = 'email';
-      return ctx.reply(formTranslations[lang].askEmail);
-    case 'email':
-      if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(text)) return ctx.reply(formTranslations[lang].errorEmail);
-      order.data.email = text;
-      order.step = 'phone';
-      return ctx.reply(formTranslations[lang].askPhone);
-    case 'phone':
-      if (!/^\+\d{9,15}$/.test(text)) return ctx.reply(formTranslations[lang].errorPhone);
-      order.data.phone = text;
-      order.step = 'payment';
-      return ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
-        [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
-        [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')]
-      ]));
-  }
-});
-
-// --- Оплата ---
-bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
-  await ctx.answerCbQuery();
-  const userId = ctx.from.id;
-  const order = userOrders[userId];
-  if (!order) return;
-  const lang = order.lang;
-  const isPaypal = ctx.callbackQuery.data === 'pay_paypal';
-  order.data.payment = isPaypal ? 'PayPal' : 'SEPA';
-  order.step = 'payment_chosen';
-
-  const messageText = isPaypal ? formTranslations[lang].paypalMsg(order.data.price) : formTranslations[lang].sepaMsg(order.data.price);
-  await ctx.reply(messageText, {
-    parse_mode: 'Markdown',
-    disable_web_page_preview: true,
-    reply_markup: { inline_keyboard: [[{ text: formTranslations[lang].changePayment, callback_data: 'change_payment' }]] }
-  });
-});
-
-// --- Фото (чек) ---
-bot.on('photo', async (ctx) => {
-  const userId = ctx.from.id;
-  const lang = getLang(userId);
-  const order = userOrders[userId];
-  if (!order) return ctx.reply(formTranslations[lang].orderNotFound);
-
-  const photoId = ctx.message.photo.at(-1).file_id;
-  const orderId = Date.now().toString();
-  order.id = orderId;
-  order.userId = userId;
-  order.data.paymentConfirmed = false;
-  orders.push(order);
-
-  await ctx.telegram.sendPhoto(ADMIN_ID, photoId, {
-    caption: `🖼 Подтверждение оплаты\n🆔 Заказ: ${orderId}\n👤 ${order.data.name}\n🏠 ${order.data.address}\n📱 ${order.data.phone}\n✉️ ${order.data.email}\n💰 ${order.data.price}€`,
-    reply_markup: { inline_keyboard: [[{ text: '✅ Подтвердить оплату', callback_data: `confirm_${orderId}` }]] }
-  });
-
-  ctx.reply(formTranslations[lang].paymentSent);
-  delete userOrders[userId];
-});
-
-// --- Підтвердження оплати ---
-bot.action(/confirm_(.+)/, async (ctx) => {
-  await ctx.answerCbQuery();
-  const orderId = ctx.match[1];
-  const order = orders.find(o => o.id === orderId);
-  if (!order) return ctx.reply('❌ Заказ не найден');
-
-  order.data.paymentConfirmed = true;
-  const lang = order.lang;
-  await bot.telegram.sendMessage(order.userId, formTranslations[lang].paymentConfirmed);
-  ctx.reply(`✅ Оплата по заказу *${orderId}* подтверждена!`, { parse_mode: 'Markdown' });
-});
-
-// --- Сервер ---
-const app = express();
-app.use(express.json());
-if (WEBHOOK_URL) app.use(bot.webhookCallback('/webhook'));
-
-app.get('/', (req, res) => res.send('Bot is running 🚀'));
-app.listen(PORT, async () => {
-  console.log('Server running on port', PORT);
-  if (WEBHOOK_URL) {
-    try {
-      await bot.telegram.setWebhook(`${WEBHOOK_URL}/webhook`, { drop_pending_updates: true });
-      console.log('Webhook set to', `${WEBHOOK_URL}/webhook`);
-    } catch (e) {
-      console.error('Webhook error, switching to polling...', e.message);
-      await bot.telegram.deleteWebhook().catch(() => {});
-      await bot.launch();
-    }
-  } else {
-    await bot.telegram.deleteWebhook().catch(() => {});
-    await bot.launch();
-    console.log('Polling started (no WEBHOOK_URL)');
-  }
-});
-
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
