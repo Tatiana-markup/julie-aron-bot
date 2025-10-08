@@ -258,7 +258,6 @@ bot.on('text', async (ctx) => {
   }
 
   // --- Логіка юзера ---
-    bot.on('text', async (ctx) => {
       const userId = ctx.from.id;
       const text = ctx.message.text.trim();
       const order = userOrders[userId];
