@@ -171,9 +171,9 @@ bot.action('order', async (ctx) => {
     return ctx.reply(
       formTranslations[lang].subscribe || "🔔 Підпишіться, щоб отримати знижку!",
       Markup.inlineKeyboard([
-        [Markup.button.url("Підписатись", `https://t.me/${CHANNEL_ID.replace('@', '')}`)],
-        [Markup.button.callback("✅ Я підписався", 'check_sub')],
-        [Markup.button.callback("💸 Купити без знижки (70€)", 'order_no_sub')],
+          [Markup.button.url(formTranslations[lang].subscribeBtn, `https://t.me/${CHANNEL_ID.replace('@', '')}`)],
+                  [Markup.button.callback(formTranslations[lang].checkSub, 'check_sub')],
+                  [Markup.button.callback(formTranslations[lang].buyNoSub, 'order_no_sub')],
       ])
     );
   }
@@ -291,8 +291,6 @@ bot.on('text', async (ctx) => {
       ]));
   }
 });
-
-
 // --- Оплата ---
 bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
   await ctx.answerCbQuery();
