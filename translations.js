@@ -84,6 +84,12 @@ An Feiertagen oder bei hoher Auslastung der Lieferdienste kann es zu Verzögerun
 
     questionsInfo: `❓ *Fragen*
 Wenn Sie Fragen zu Ihrer Bestellung oder Lieferung haben — schreiben Sie uns direkt im Chat.`,
+    chooseAroma: "💠 Wählen Sie einen Duft, um mehr zu erfahren:",
+      aromaRed: `💎 *RED CRYSTAL — Julii & Aron*\n_extrait de parfum_\n\nEs gibt Düfte, die zu Legenden werden – wie Baccarat Rouge 540: kristallklar, ambriert, strahlend. Doch manche empfinden ihn als zu intensiv für den Alltag.\n\nBei Julii & Aron haben wir diese Legende neu interpretiert und *RED CRYSTAL* geschaffen.\nWir haben die DNA des Dufts bewahrt, aber feine Anpassungen vorgenommen:\n\n- den „medizinischen“ Ton entfernt,\n- die Ambra weicher gestaltet,\n- die Basis veredelt.\n\nDas Ergebnis: eine kristallklare Duftspur – sanfter, leichter, doch unverkennbar luxuriös.\n\n💎 Baccarat Rouge 540 kostet heute Hunderte von Euro.\n🔥 Unser *RED CRYSTAL* bietet dasselbe Leuchten – zu einem deutlich zugänglicheren Preis.\n\n_Handgefertigt in Bayern. Konzentration — extrait de parfum._`,
+
+      aromaRive: `🌸 *RIVE DROITE — Julii & Aron*\n_extrait de parfum_\n\nOft wurden wir gefragt: „Kommt dieser leichte, strahlende, saubere Pariser Blumenstrauß?“ — und ja, wir haben ihn erschaffen. Rive Droite fängt die Essenz dieses Dufts ein — klar, elegant und modern.\n\nWas wir getan haben: etwas Süße reduziert, mehr Frische im Auftakt und eine sauberere Basis – damit der Duft heller, reiner und länger anhält.\n\n*Duftpyramide:*\n• Kopf: Bergamotte, Litschi, Weißer Pfirsich\n• Herz: Jasmin Sambac, Pfingstrose, Orangenblüte\n• Basis: Weißer Moschus, transparente Hölzer, Moos\n\n*Klangbild:*\nEin luftiger Blumen-Frucht-Akkord mit weicher Süße und viel Reinheit. Unisex. Tagsüber – ein dezentes Kompliment, abends – ein feiner, gepflegter Duftschleier.\n\n_Handgefertigt in Bayern. Konzentration — extrait de parfum._`,
+
+      aromaNossi: `🔥 *NOSSI — Julii & Aron*\n_extrait de parfum_\n\n*Nossi* ist ein Duft, in den wir nicht nur Erfahrung, sondern Herzblut gelegt haben. Wir suchten lange nach der Balance zwischen fruchtiger Verspieltheit und zarter Blumigkeit, zwischen Frische und Tiefe.\n\n🍐 Saftige Fruchtnoten schenken einen fröhlichen Auftakt.\n🌺 Das Blumenherz entfaltet sich sanft mit einem Hauch von Glanz.\n🌲 Die holzige Basis verleiht Wärme und Geborgenheit.\n\n✨ *Nossi* klingt romantisch und feminin, aber nie aufdringlich. Jung und doch reif im Charme. Vielseitig: leicht am Tag, verführerisch am Abend.\n\n_Handgefertigt in Bayern. Konzentration — extrait de parfum._`,
     back: "🔙 Zurück"
   },
 
@@ -132,6 +138,12 @@ Not subject to VAT.`,
 
     questionsInfo: `❓ *Questions*
 If you have any questions — write to us in chat.`,
+    chooseAroma: "💠 Choose a fragrance to learn more:",
+      aromaRed: `💎 *RED CRYSTAL — Julii & Aron*\n_extrait de parfum_\n\nThere are scents that become legends — like Baccarat Rouge 540: crystal-clear, amber, radiant. Yet some find it too intense for everyday wear.\n\nAt Julii & Aron, we re-imagined this legend and created *RED CRYSTAL*.\nWe kept its DNA but made subtle refinements:\n\n- removed the “medical” undertone,\n- softened the amber,\n- refined the base.\n\nThe result: a crystal-clear trail — gentler, lighter, yet unmistakably luxurious.\n\n💎 Baccarat Rouge 540 costs hundreds of euros.\n🔥 Our *RED CRYSTAL* offers the same brilliance at a far more approachable price.\n\n_Handcrafted in Bavaria. Concentration — extrait de parfum._`,
+
+      aromaRive: `🌸 *RIVE DROITE — Julii & Aron*\n_extrait de parfum_\n\nWe were often asked, “Is there that radiant, airy Parisian bouquet?” — and yes, we created it. *Rive Droite* captures the essence of that fragrance — fresh, elegant, modern.\n\nWhat we did: reduced sweetness, added freshness on top, and refined the base for a cleaner, longer lasting trail.\n\n*Fragrance Pyramid:*\n• Top: Bergamot, Lychee, White Peach\n• Heart: Jasmine Sambac, Peony, Orange Blossom\n• Base: White Musk, Transparent Woods, Moss\n\n*Aroma Profile:*\nAn airy floral-fruity accord with soft sweetness and purity. Unisex. Day – a delicate compliment, Evening – a refined veil of elegance.\n\n_Handcrafted in Bavaria. Concentration — extrait de parfum._`,
+
+      aromaNossi: `🔥 *NOSSI — Julii & Aron*\n_extrait de parfum_\n\n*Nossi* is a fragrance born of emotion. We sought the perfect balance between playful fruit and gentle floral tones, freshness and depth.\n\n🍐 Juicy fruits bring a cheerful start.\n🌺 A soft floral heart unfolds with a touch of sparkle.\n🌲 Woody base adds warmth and comfort.\n\n✨ Romantic yet not sweet, youthful yet sophisticated. Versatile: light for the day, captivating for the evening.\n\n_Handcrafted in Bavaria. Concentration — extrait de parfum._`,
     back: "🔙 Back"
   },
 
@@ -178,6 +190,12 @@ If you have any questions — write to us in chat.`,
 
     questionsInfo: `❓ *Вопросы*
 Если у вас возникли вопросы — напишите нам прямо в чат.`,
+    chooseAroma: "💠 Выберите аромат, чтобы узнать больше:",
+      aromaRed: `💎 *RED CRYSTAL — Julii & Aron*\n_extrait de parfum_\n\nЕсть ароматы-легенды. Один из них — Baccarat Rouge 540: кристально-амбровый, сияющий, узнаваемый с первого вздоха. Но для повседневного носа многим он слишком интенсивен.\n\nМы в Julii & Aron вдохновились этой легендой и создали *RED CRYSTAL*.\nСохранили ДНК, но смягчили нотки и очистили базу.\n\n💎 Тот же блеск, та же роскошь — но по доступной цене.\n\n_Сделано вручную в Баварии. Концентрация — extrait de parfum._`,
+
+      aromaRive: `🌸 *RIVE DROITE — Julii & Aron*\n_extrait de parfum_\n\nЛёгкий, сияющий парижский букет с чистым шлейфом. Мы уменьшили сладость, добавили свежести и сделали базу чище.\n\n*Пирамида:*\n• Верх: бергамот, личи, белый персик\n• Сердце: жасмин самбак, пион, апельсиновый цвет\n• База: белый мускус, прозрачные древесные ноты, мох\n\nВоздушный, универсальный аромат для дня и вечера.\n\n_Сделано в Баварии. Концентрация — extrait de parfum._`,
+
+      aromaNossi: `🔥 *NOSSI — Julii & Aron*\n_extrait de parfum_\n\nФруктово-цветочный аромат с древесной базой. Игривый, нежный, но уверенный. Подходит на каждый день и особенные вечера.\n\n_Сделано вручную в Баварии. Концентрация — extrait de parfum._`,
     back: "🔙 Назад"
   }
 };

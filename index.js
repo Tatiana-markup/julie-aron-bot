@@ -92,8 +92,9 @@ bot.action(['lang_de', 'lang_en', 'lang_ru'], async (ctx) => {
       const lang = getLang(ctx.from.id);
       await ctx.answerCbQuery();
 
-      return ctx.editMessageText(
-        "💠 Выберите аромат, чтобы узнать больше:",
+        return ctx.editMessageText(
+          formTranslations[lang].chooseAroma,
+
         {
           parse_mode: "Markdown",
           ...Markup.inlineKeyboard([
