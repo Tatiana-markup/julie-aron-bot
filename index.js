@@ -248,9 +248,23 @@ bot.action('order_no_sub', async (ctx) => {
 bot.hears('📦 Список заказов', (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
   if (!orders.length) return ctx.reply("ℹ️ Заказов нет");
-  const list = orders.map(o => `🆔 ${o.id} | ${o.data.name} | ${o.data.price}€`).join("\n");
-  ctx.reply(`📋 Заказы:\n\n${list}\n\n📊 Остаток: ${stock}`);
+
+  const list = orders.map(o => {
+    const confirmed = o.data.paymentConfirmed ? "✅ Оплачено" : "⏳ Не оплачено";
+    return (
+      `🆔 *${o.id}*\n` +
+      `👤 *Имя:* ${o.data.name}\n` +
+      `📱 *Телефон:* ${o.data.phone}\n` +
+      `🏠 *Адрес:* ${o.data.address}\n` +
+      `💳 *Оплата:* ${o.data.payment}\n` +
+      `💰 *Сумма:* ${o.data.price}€\n` +
+      `📦 *Статус:* ${confirmed}\n`
+    );
+  }).join("\n──────────────────────\n");
+
+  ctx.replyWithMarkdownV2(`📋 *Список заказов:*\n\n${list}\n\n📊 Остаток: ${stock}`);
 });
+
 
 bot.hears('📊 Остаток товара', (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
@@ -495,7 +509,7 @@ bot.action(/confirm_(.+)/, async (ctx) => {
   const orderId = ctx.match[1];
   const order = orders.find(o => o.id === orderId);
   if (!order) return ctx.reply("❌ Заказ не найден");
-
+    order.data.paymentConfirmed = true;
   const lang = order.lang;
   await bot.telegram.sendMessage(order.userId, formTranslations[lang].paymentConfirmed);
   ctx.reply(`✅ Оплата по заказу ${orderId} подтверждена!`);
