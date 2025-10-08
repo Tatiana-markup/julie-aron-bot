@@ -451,7 +451,7 @@ bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
   `;
   if (ADMIN_ID) await ctx.telegram.sendMessage(ADMIN_ID, `📦 Новый заказ:\n${orderSummary}`);
 
-  delete userOrders[ctx.from.id];
+    userOrders[ctx.from.id].step = null;
 });
 
 // --- Обробка кнопки "Изменить способ оплаты" ---
