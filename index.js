@@ -301,20 +301,37 @@ bot.on('text', async (ctx) => {
       return ctx.reply("✏️ Введите трек-номер:");
     }
 
-    if (state?.step === "enter_tracking") {
-      const order = orders.find(o => o.id === state.orderId);
-      if (!order) {
-        await ctx.reply("❌ Заказ не найден");
+      if (state?.step === "enter_tracking") {
+        const order = orders.find(o => o.id === state.orderId);
+        if (!order) {
+          await ctx.reply("❌ Заказ не найден");
+          adminState[userId] = null;
+          return;
+        }
+
+        const trackNumber = text;
+        const lang = order.lang || "en";
+
+        // ✨ Тексти трек-повідомлення різними мовами
+        const trackMessages = {
+          ru: `📦 *Ваш заказ отправлен!*\n\n🚚 Трек-номер: *${trackNumber}*\n\nОтследить посылку можно здесь:\n👉 [DHL Отслеживание](https://www.dhl.de/de/privatkunden/dhl-sendungsverfolgung.html)\n\nСпасибо, что выбрали *Julii & Aron*! 💎`,
+          de: `📦 *Ihre Bestellung wurde versendet!*\n\n🚚 Sendungsnummer: *${trackNumber}*\n\nSie können Ihr Paket hier verfolgen:\n👉 [DHL Sendungsverfolgung](https://www.dhl.de/de/privatkunden/dhl-sendungsverfolgung.html)\n\nDanke, dass Sie *Julii & Aron* gewählt haben! 💎`,
+          en: `📦 *Your order has been shipped!*\n\n🚚 Tracking number: *${trackNumber}*\n\nYou can track your parcel here:\n👉 [DHL Tracking](https://www.dhl.de/en/privatkunden/dhl-sendungsverfolgung.html)\n\nThank you for choosing *Julii & Aron*! 💎`
+        };
+
+        // Надсилаємо клієнту повідомлення його мовою
+        await bot.telegram.sendMessage(order.userId, trackMessages[lang] || trackMessages.en, {
+          parse_mode: "Markdown",
+          disable_web_page_preview: false,
+        });
+
+        // Повідомлення адміну
+        await ctx.reply(`✅ Трек-номер отправлен пользователю (🆔 ${order.id})`);
+        stock = Math.max(0, stock - 1);
         adminState[userId] = null;
         return;
       }
-      const trackNumber = text;
-      await bot.telegram.sendMessage(order.userId, `📦 Ваш заказ отправлен!\nТрек-номер: ${trackNumber}`);
-      await ctx.reply(`✅ Трек-номер отправлен пользователю (🆔 ${order.id})`);
-      stock = Math.max(0, stock - 1);
-      adminState[userId] = null;
-      return;
-    }
+
 
     if (state === "broadcast") {
       let success = 0, fail = 0;
