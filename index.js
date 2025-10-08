@@ -52,11 +52,18 @@ bot.start(async (ctx) => {
   if (ctx.from?.id === ADMIN_ID) {
     return ctx.reply(
       '👩‍💻 Панель администратора',
-      Markup.keyboard([
-        ['📦 Список заказов', '📊 Остаток товара'],
-        ['✏️ Изменить количество товара', '🚚 Отправить трек-номер'],
-        ['📢 Рассылка']
-      ]).resize()
+    Markup.inlineKeyboard([
+        [
+            Markup.button.callback('📦 Список заказов', 'admin_orders'),
+            Markup.button.callback('📊 Остаток товара', 'admin_stock')
+                       ],
+        [
+            Markup.button.callback('✏️ Изменить количество товара', 'admin_edit_stock'),
+            Markup.button.callback('🚚 Отправить трек-номер', 'admin_track')
+                       ],
+        [Markup.button.callback('📢 Рассылка', 'admin_broadcast')]
+        ])
+
     );
   }
 
@@ -205,7 +212,7 @@ bot.on('text', async (ctx) => {
   const userId = ctx.from.id;
   const text = ctx.message.text.trim();
 
-  // --- Адмін логіка ---
+// --- Адмін логіка ---
   if (userId === ADMIN_ID && adminState[userId]) {
     const state = adminState[userId];
 
@@ -341,34 +348,36 @@ bot.action(/confirm_(.+)/, async (ctx) => {
   await ctx.reply(`✅ Оплата по заказу ${orderId} подтверждена!`);
 });
 
-// --- Адмін кнопки ---
-bot.hears('📦 Список заказов', (ctx) => {
+// --- Адмін кнопки (callback-и) ---
+bot.action('admin_orders', async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
   if (!orders.length) return ctx.reply("ℹ️ Заказов нет");
-  const list = orders.map(o => `🆔 ${o.id}\n👤 ${o.data.name}\n🏠 ${o.data.address}\n📱 ${o.data.phone}\n✉️ ${o.data.email}\n💳 ${o.data.payment}\n💰 ${o.data.price}€\n📦 ${o.data.paymentConfirmed ? "✅ Оплачено" : "⏳ Не оплачено"}`).join("\n───────────────\n");
-  ctx.reply(`📋 Список заказов:\n\n${list}\n\n📊 Остаток: ${stock}`);
+  const list = orders.map(o =>
+    `🆔 ${o.id}\n👤 ${o.data.name}\n🏠 ${o.data.address}\n📱 ${o.data.phone}\n✉️ ${o.data.email}\n💳 ${o.data.payment}\n💰 ${o.data.price}€\n📦 ${o.data.paymentConfirmed ? "✅ Оплачено" : "⏳ Не оплачено"}`
+  ).join("\n───────────────\n");
+  await ctx.reply(`📋 Список заказов:\n\n${list}\n\n📊 Остаток: ${stock}`);
 });
 
-bot.hears('📊 Остаток товара', (ctx) => {
+bot.action('admin_stock', async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply(`📦 Остаток товара: ${stock}`);
+  await ctx.reply(`📦 Остаток товара: ${stock}`);
 });
 
-bot.hears('✏️ Изменить количество товара', (ctx) => {
+bot.action('admin_edit_stock', async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply("Введите новое количество:");
+  await ctx.reply("Введите новое количество:");
   adminState[ctx.from.id] = "update_stock";
 });
 
-bot.hears('🚚 Отправить трек-номер', (ctx) => {
+bot.action('admin_track', async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply("Введите ID заказа:");
+  await ctx.reply("Введите ID заказа:");
   adminState[ctx.from.id] = "enter_orderId";
 });
 
-bot.hears('📢 Рассылка', (ctx) => {
+bot.action('admin_broadcast', async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
-  ctx.reply("Введите текст рассылки:");
+  await ctx.reply("Введите текст рассылки:");
   adminState[ctx.from.id] = "broadcast";
 });
 
