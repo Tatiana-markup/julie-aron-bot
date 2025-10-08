@@ -201,7 +201,6 @@ bot.action('order_no_sub', async (ctx) => {
   return ctx.reply(formTranslations[lang].askName);
 });
 
-// --- Обробка форми ---
 bot.on('text', async (ctx) => {
   const userId = ctx.from.id;
   const text = ctx.message.text.trim();
@@ -258,56 +257,40 @@ bot.on('text', async (ctx) => {
   }
 
   // --- Логіка юзера ---
-      const userId = ctx.from.id;
-      const text = ctx.message.text.trim();
-      const order = userOrders[userId];
-      if (!order) return;
-      const lang = order.lang;
+  const order = userOrders[userId];
+  if (!order) return;
+  const lang = order.lang;
 
-      switch (order.step) {
-        case 'name':
-          // 🔍 Перевірка: мінімум 2 слова + лише латиниця
-          if (text.split(/\s+/).length < 2) {
-            return ctx.reply(formTranslations[lang].errorName);
-          }
-          if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/.test(text)) {
-            return ctx.reply(formTranslations[lang].errorLatinName);
-          }
-          order.data.name = text;
-          order.step = 'address';
-          return ctx.reply(formTranslations[lang].askAddress);
+  switch (order.step) {
+    case 'name':
+      if (text.split(/\s+/).length < 2) return ctx.reply(formTranslations[lang].errorName);
+      if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/.test(text)) return ctx.reply(formTranslations[lang].errorLatinName);
+      order.data.name = text;
+      order.step = 'address';
+      return ctx.reply(formTranslations[lang].askAddress);
 
-        case 'address':
-          // 🔍 Перевірка: лише латиниця, цифри і базові символи
-          if (!/^[A-Za-z0-9À-ÖØ-öø-ÿ\s,'\-./#]+$/.test(text)) {
-            return ctx.reply(formTranslations[lang].errorLatinAddress);
-          }
-          order.data.address = text;
-          order.step = 'email';
-          return ctx.reply(formTranslations[lang].askEmail);
+    case 'address':
+      if (!/^[A-Za-z0-9À-ÖØ-öø-ÿ\s,'\-./#]+$/.test(text)) return ctx.reply(formTranslations[lang].errorLatinAddress);
+      order.data.address = text;
+      order.step = 'email';
+      return ctx.reply(formTranslations[lang].askEmail);
 
-        case 'email':
-          // 🔍 Перевірка email
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
-            return ctx.reply(formTranslations[lang].errorEmail);
-          }
-          order.data.email = text;
-          order.step = 'phone';
-          return ctx.reply(formTranslations[lang].askPhone);
+    case 'email':
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) return ctx.reply(formTranslations[lang].errorEmail);
+      order.data.email = text;
+      order.step = 'phone';
+      return ctx.reply(formTranslations[lang].askPhone);
 
-        case 'phone':
-          // 🔍 Перевірка міжнародного формату
-          if (!/^\+[0-9]{8,15}$/.test(text)) {
-            return ctx.reply(formTranslations[lang].errorPhone);
-          }
-          order.data.phone = text;
-          order.step = 'payment';
-          return ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
-            [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
-            [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')],
-          ]));
-      }
-    });
+    case 'phone':
+      if (!/^\+[0-9]{8,15}$/.test(text)) return ctx.reply(formTranslations[lang].errorPhone);
+      order.data.phone = text;
+      order.step = 'payment';
+      return ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
+        [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
+        [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')],
+      ]));
+  }
+});
 
 
 // --- Оплата ---
