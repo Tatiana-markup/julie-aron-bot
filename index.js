@@ -240,7 +240,7 @@ bot.on('text', async (ctx) => {
       const trackNumber = text;
       const lang = order.lang || "en";
       const trackMessages = {
-        ru: `📦 *Ваш заказ отправлен!*\n🚚 Трек-номер: *${trackNumber}*`,
+        ru: `📦 *Ваш заказ отправлен!*\n🚚 Трек-номер: *${trackNumber}* Отслеживать заказ можно по ссылке https://www.dhl.com/global-en/home.html`,
         de: `📦 *Ihre Bestellung wurde versendet!*\n🚚 Sendungsnummer: *${trackNumber}*`,
         en: `📦 *Your order has been shipped!*\n🚚 Tracking number: *${trackNumber}*`
       };
