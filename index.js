@@ -91,9 +91,24 @@ bot.action(['lang_de', 'lang_en', 'lang_ru'], async (ctx) => {
       [Markup.button.callback(translations[lang].payment, 'payment')],
       [Markup.button.callback(translations[lang].shipping, 'shipping')],
       [Markup.button.callback(translations[lang].questions, 'questions')],
+      [Markup.button.callback( '🌐 Изменить язык / Change language / Sprache ändern', 'change_lang')],
     ]),
   });
 });
+
+// --- Зміна мови ---
+bot.action('change_lang', async (ctx) => {
+  await ctx.answerCbQuery();
+  return ctx.editMessageText(
+    'Здравствуйте 👋 Пожалуйста, выберите язык / Hi 👋 Please choose a language / Hallo 👋 Bitte wählen Sie eine Sprache',
+    Markup.inlineKeyboard([
+      [Markup.button.callback('🇩🇪 Deutsch', 'lang_de')],
+      [Markup.button.callback('🇬🇧 English', 'lang_en')],
+      [Markup.button.callback('🇷🇺 Русский', 'lang_ru')],
+    ])
+  );
+});
+
 
 // --- Про аромати ---
 bot.action('fragrances', async (ctx) => {
