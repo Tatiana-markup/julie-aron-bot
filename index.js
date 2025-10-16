@@ -367,6 +367,7 @@ case 'phone':
   }, 30 * 60 * 1000);
   return;
 }
+});
 
 // --- Оплата ---
 bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
