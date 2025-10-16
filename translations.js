@@ -90,7 +90,17 @@ Wenn Sie Fragen zu Ihrer Bestellung oder Lieferung haben — schreiben Sie uns d
       aromaRive: `🌸 *RIVE DROITE — Julii & Aron*\n_extrait de parfum_\n\nOft wurden wir gefragt: „Kommt dieser leichte, strahlende, saubere Pariser Blumenstrauß?“ — und ja, wir haben ihn erschaffen. Rive Droite fängt die Essenz dieses Dufts ein — klar, elegant und modern.\n\nWas wir getan haben: etwas Süße reduziert, mehr Frische im Auftakt und eine sauberere Basis – damit der Duft heller, reiner und länger anhält.\n\n*Duftpyramide:*\n• Kopf: Bergamotte, Litschi, Weißer Pfirsich\n• Herz: Jasmin Sambac, Pfingstrose, Orangenblüte\n• Basis: Weißer Moschus, transparente Hölzer, Moos\n\n*Klangbild:*\nEin luftiger Blumen-Frucht-Akkord mit weicher Süße und viel Reinheit. Unisex. Tagsüber – ein dezentes Kompliment, abends – ein feiner, gepflegter Duftschleier.\n\n_Handgefertigt in Bayern. Konzentration — extrait de parfum._`,
 
       aromaNossi: `🔥 *NOSSI — Julii & Aron*\n_extrait de parfum_\n\n*Nossi* ist ein Duft, in den wir nicht nur Erfahrung, sondern Herzblut gelegt haben. Wir suchten lange nach der Balance zwischen fruchtiger Verspieltheit und zarter Blumigkeit, zwischen Frische und Tiefe.\n\n🍐 Saftige Fruchtnoten schenken einen fröhlichen Auftakt.\n🌺 Das Blumenherz entfaltet sich sanft mit einem Hauch von Glanz.\n🌲 Die holzige Basis verleiht Wärme und Geborgenheit.\n\n✨ *Nossi* klingt romantisch und feminin, aber nie aufdringlich. Jung und doch reif im Charme. Vielseitig: leicht am Tag, verführerisch am Abend.\n\n_Handgefertigt in Bayern. Konzentration — extrait de parfum._`,
-    back: "🔙 Zurück"
+    back: "🔙 Zurück",
+    askCountry: "Bitte geben Sie Ihr Land ein (nur lateinische Buchstaben):",
+askCity: "Bitte geben Sie Ihre Stadt und Postleitzahl ein (z. B. Berlin 10115):",
+askStreet: "Bitte geben Sie Ihre Straße, Hausnummer und Wohnung ein:",
+errorLatinCountry: "❌ Bitte verwenden Sie nur lateinische Buchstaben im Ländernamen.",
+errorLatinCity: "❌ Bitte verwenden Sie nur lateinische Buchstaben und Zahlen in Stadt und PLZ.",
+errorLatinStreet: "❌ Bitte verwenden Sie nur lateinische Buchstaben und Zahlen in der Adresse.",
+paymentSummary: (country, delivery, total) =>
+  `💎 Ihre Bestellung: *Aktionsset Parfums — 63 €*\n📦 Lieferung nach: *${country}* — ${delivery}\n💰 *Gesamtbetrag zur Zahlung:* ${total}\n\nBitte zahlen Sie und senden Sie einen Screenshot hier im Chat.`,
+paymentReminder: "⚠️ Ohne Zahlungsnachweis ist Ihre Bestellung ungültig. Bitte senden Sie den Screenshot der Zahlung hier im Chat."
+
   },
 
   en: {
@@ -144,7 +154,17 @@ If you have any questions — write to us in chat.`,
       aromaRive: `🌸 *RIVE DROITE — Julii & Aron*\n_extrait de parfum_\n\nWe were often asked, “Is there that radiant, airy Parisian bouquet?” — and yes, we created it. *Rive Droite* captures the essence of that fragrance — fresh, elegant, modern.\n\nWhat we did: reduced sweetness, added freshness on top, and refined the base for a cleaner, longer lasting trail.\n\n*Fragrance Pyramid:*\n• Top: Bergamot, Lychee, White Peach\n• Heart: Jasmine Sambac, Peony, Orange Blossom\n• Base: White Musk, Transparent Woods, Moss\n\n*Aroma Profile:*\nAn airy floral-fruity accord with soft sweetness and purity. Unisex. Day – a delicate compliment, Evening – a refined veil of elegance.\n\n_Handcrafted in Bavaria. Concentration — extrait de parfum._`,
 
       aromaNossi: `🔥 *NOSSI — Julii & Aron*\n_extrait de parfum_\n\n*Nossi* is a fragrance born of emotion. We sought the perfect balance between playful fruit and gentle floral tones, freshness and depth.\n\n🍐 Juicy fruits bring a cheerful start.\n🌺 A soft floral heart unfolds with a touch of sparkle.\n🌲 Woody base adds warmth and comfort.\n\n✨ Romantic yet not sweet, youthful yet sophisticated. Versatile: light for the day, captivating for the evening.\n\n_Handcrafted in Bavaria. Concentration — extrait de parfum._`,
-    back: "🔙 Back"
+    back: "🔙 Back",
+    askCountry: "Please enter your country (Latin letters only):",
+askCity: "Please enter your city and postal code (e.g. Berlin 10115):",
+askStreet: "Please enter your street, house number and apartment:",
+errorLatinCountry: "❌ Please use only Latin letters for the country name.",
+errorLatinCity: "❌ Please use only Latin letters and numbers for city and postal code.",
+errorLatinStreet: "❌ Please use only Latin letters and numbers for the address.",
+paymentSummary: (country, delivery, total) =>
+  `💎 Your order: *Promotional Perfume Set — €63*\n📦 Delivery to: *${country}* — ${delivery}\n💰 *Total to pay:* ${total}\n\nPlease make the payment and send the screenshot here in chat.`,
+paymentReminder: "⚠️ Without payment confirmation, your order is not valid. Please send the payment screenshot in this chat."
+
   },
 
   ru: {
@@ -196,7 +216,17 @@ If you have any questions — write to us in chat.`,
       aromaRive: `🌸 *RIVE DROITE — Julii & Aron*\n_extrait de parfum_\n\nЛёгкий, сияющий парижский букет с чистым шлейфом. Мы уменьшили сладость, добавили свежести и сделали базу чище.\n\n*Пирамида:*\n• Верх: бергамот, личи, белый персик\n• Сердце: жасмин самбак, пион, апельсиновый цвет\n• База: белый мускус, прозрачные древесные ноты, мох\n\nВоздушный, универсальный аромат для дня и вечера.\n\n_Сделано в Баварии. Концентрация — extrait de parfum._`,
 
       aromaNossi: `🔥 *NOSSI — Julii & Aron*\n_extrait de parfum_\n\nФруктово-цветочный аромат с древесной базой. Игривый, нежный, но уверенный. Подходит на каждый день и особенные вечера.\n\n_Сделано вручную в Баварии. Концентрация — extrait de parfum._`,
-    back: "🔙 Назад"
+    back: "🔙 Назад",
+    askCountry: "Введите страну (только латиницей):",
+askCity: "Введите город и индекс (например Berlin 10115):",
+askStreet: "Введите улицу, дом и квартиру:",
+errorLatinCountry: "❌ Используйте только латинские буквы в названии страны.",
+errorLatinCity: "❌ Используйте только латинские буквы и цифры в названии города и индексе.",
+errorLatinStreet: "❌ Используйте только латинские буквы и цифры в адресе.",
+paymentSummary: (country, delivery, total) =>
+  `💎 Ваш заказ: *Акционный набор ароматов — 63 €*\n📦 Доставка в: *${country}* — ${delivery}\n💰 *К оплате:* ${total}\n\nПожалуйста, оплатите и отправьте скриншот сюда в чат.`,
+paymentReminder: "⚠️ Без подтверждения оплаты заказ недействителен. Отправьте скриншот платежа в этот чат."
+
   }
 };
 

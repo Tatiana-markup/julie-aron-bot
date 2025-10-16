@@ -285,34 +285,89 @@ bot.on('text', async (ctx) => {
 
   switch (order.step) {
     case 'name':
-      if (text.split(/\s+/).length < 2) return ctx.reply(formTranslations[lang].errorName);
-      if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/.test(text)) return ctx.reply(formTranslations[lang].errorLatinName);
-      order.data.name = text;
-      order.step = 'address';
-      return ctx.reply(formTranslations[lang].askAddress);
+  if (text.split(/\s+/).length < 2) return ctx.reply(formTranslations[lang].errorName);
+  if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/.test(text)) return ctx.reply(formTranslations[lang].errorLatinName);
+  order.data.name = text.trim();
+  order.step = 'country';
+  return ctx.reply(formTranslations[lang].askCountry);
 
-    case 'address':
-      if (!/^[A-Za-z0-9À-ÖØ-öø-ÿ\s,'\-./#]+$/.test(text)) return ctx.reply(formTranslations[lang].errorLatinAddress);
-      order.data.address = text;
-      order.step = 'email';
-      return ctx.reply(formTranslations[lang].askEmail);
-
-    case 'email':
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) return ctx.reply(formTranslations[lang].errorEmail);
-      order.data.email = text;
-      order.step = 'phone';
-      return ctx.reply(formTranslations[lang].askPhone);
-
-    case 'phone':
-      if (!/^\+[0-9]{8,15}$/.test(text)) return ctx.reply(formTranslations[lang].errorPhone);
-      order.data.phone = text;
-      order.step = 'payment';
-      return ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
-        [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
-        [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')],
-      ]));
+// --- Країна ---
+case 'country':
+  if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s'-]+$/.test(text)) {
+    return ctx.reply(formTranslations[lang].errorLatinCountry);
   }
-});
+  order.data.country = text.trim();
+  order.step = 'city';
+  return ctx.reply(formTranslations[lang].askCity);
+
+// --- Місто + індекс ---
+case 'city':
+  if (!/^[A-Za-z0-9À-ÖØ-öø-ÿ\s,'\-]+$/.test(text)) {
+    return ctx.reply(formTranslations[lang].errorLatinCity);
+  }
+  order.data.city = text.trim();
+  order.step = 'street';
+  return ctx.reply(formTranslations[lang].askStreet);
+
+// --- Вулиця, будинок, квартира ---
+case 'street':
+  if (!/^[A-Za-z0-9À-ÖØ-öø-ÿ\s,'\-./#]+$/.test(text)) {
+    return ctx.reply(formTranslations[lang].errorLatinStreet);
+  }
+  order.data.street = text.trim();
+  order.step = 'email';
+  return ctx.reply(formTranslations[lang].askEmail);
+
+// --- Email ---
+case 'email':
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) return ctx.reply(formTranslations[lang].errorEmail);
+  order.data.email = text.trim();
+  order.step = 'phone';
+  return ctx.reply(formTranslations[lang].askPhone);
+
+// --- Телефон ---
+case 'phone':
+  if (!/^\+[0-9]{8,15}$/.test(text)) return ctx.reply(formTranslations[lang].errorPhone);
+  order.data.phone = text.trim();
+  order.step = 'payment';
+
+  // --- Розрахунок доставки ---
+  let deliveryCost = 15;
+  const c = order.data.country.toLowerCase();
+  if (c.includes('germany') || c.includes('deutschland')) deliveryCost = 5;
+  else if (['france', 'austria', 'italy', 'spain', 'poland', 'netherlands', 'belgium', 'czech', 'sweden', 'finland', 'denmark']
+           .some(k => c.includes(k))) deliveryCost = 9.99;
+
+  order.data.deliveryCost = deliveryCost;
+  order.data.total = order.data.price + deliveryCost;
+
+  // --- Повідомлення з підсумком ---
+  await ctx.reply(
+    formTranslations[lang].orderSummary(
+      order.data.price,
+      order.data.country,
+      deliveryCost,
+      order.data.total
+    ),
+    { parse_mode: 'Markdown' }
+  );
+
+  // --- Кнопки оплати ---
+  await ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
+    [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
+    [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')],
+  ]));
+
+  // --- Нагадування через 30 хв ---
+  setTimeout(async () => {
+    const pending = orders.find(o => o.userId === userId && !o.data.paymentConfirmed);
+    if (pending) {
+      await bot.telegram.sendMessage(userId, formTranslations[lang].paymentReminder);
+    }
+  }, 30 * 60 * 1000);
+  return;
+}
+
 // --- Оплата ---
 bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
   await ctx.answerCbQuery();
@@ -324,9 +379,26 @@ bot.action(['pay_paypal', 'pay_sepa'], async (ctx) => {
   const isPaypal = ctx.callbackQuery.data === 'pay_paypal';
   order.data.payment = isPaypal ? 'PayPal' : 'SEPA';
 
-  await ctx.reply(isPaypal ? formTranslations[lang].paypalMsg(order.data.price) : formTranslations[lang].sepaMsg(order.data.price), {
-    parse_mode: "Markdown"
-  });
+  const msg = isPaypal
+    ? formTranslations[lang].paypalMsg(
+        order.data.price,
+        order.data.country,
+        order.data.deliveryCost,
+        order.data.total
+      )
+    : formTranslations[lang].sepaMsg(
+        order.data.price,
+        order.data.country,
+        order.data.deliveryCost,
+        order.data.total
+      );
+
+  await ctx.reply(msg, { parse_mode: "Markdown" });
+
+  await ctx.reply(formTranslations[lang].changePayment, Markup.inlineKeyboard([
+    [Markup.button.callback(formTranslations[lang].payPaypal, 'pay_paypal')],
+    [Markup.button.callback(formTranslations[lang].paySepa, 'pay_sepa')],
+  ]));
 });
 
 // --- Фото (чек) ---
