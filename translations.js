@@ -42,10 +42,11 @@ const formTranslations = {
     errorLatinAddress: "❌ Bitte verwenden Sie nur lateinische Buchstaben und Zahlen in der Adresse.",
     errorEmail: "❌ Ungültige E-Mail-Adresse.",
     errorPhone: "❌ Ungültiges Telefonformat. Beispiel: +491234567890",
-    paypalMsg: (price, id) =>
-      `🔗 [${price} € → PayPal](https://www.paypal.com/paypalme/JuliiAron/${price})\n\nBitte zahlen Sie und senden Sie einen Screenshot.\n🆔 Bestellung: ${id}`,
-    sepaMsg: (price, id) =>
-      `🏦 SEPA-Überweisung\nEmpfänger: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nBetrag: ${price} €\nVerwendungszweck: Julii & Aron Bestellung ${price}\n\nBitte zahlen Sie und senden Sie einen Screenshot.\n🆔 Bestellung: ${id}`,
+    paypalMsg: (price, country, delivery, total) =>
+      `💳 *Zahlung über PayPal*\n\n🛍 Parfum-Set — ${price} €\n🚚 Lieferung nach: *${country}* — ${delivery} €\n💰 Gesamtbetrag: *${total} €*\n\n` +
+      `🔗 [Jetzt bezahlen](https://www.paypal.com/paypalme/JuliiAron/${total})\n\nBitte senden Sie nach der Zahlung einen Screenshot.`,
+      sepaMsg: (price, country, delivery, total) =>
+      `🏦 *SEPA-Überweisung*\nEmpfänger: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\n\n🛍 Parfum-Set — ${price} €\n🚚 Lieferung nach: *${country}* — ${delivery} €\n💰 Gesamtbetrag: *${total} €*\n\nBitte senden Sie nach der Zahlung einen Screenshot.`,
     orderNotFound: "⚠️ Wir haben keine aktive Bestellung von Ihnen gefunden.",
     paymentSent: "✅ Danke! Ihre Zahlungsbestätigung wurde an den Administrator gesendet.",
     paymentConfirmed: "✅ Ihre Zahlung wurde bestätigt. Bitte warten Sie auf die Sendungsverfolgungsnummer.",
@@ -97,7 +98,7 @@ askStreet: "Bitte geben Sie Ihre Straße, Hausnummer und Wohnung ein:",
 errorLatinCountry: "❌ Bitte verwenden Sie nur lateinische Buchstaben im Ländernamen.",
 errorLatinCity: "❌ Bitte verwenden Sie nur lateinische Buchstaben und Zahlen in Stadt und PLZ.",
 errorLatinStreet: "❌ Bitte verwenden Sie nur lateinische Buchstaben und Zahlen in der Adresse.",
-paymentSummary: (country, delivery, total) =>
+orderSummary: (country, delivery, total) =>
   `💎 Ihre Bestellung: *Aktionsset Parfums — 63 €*\n📦 Lieferung nach: *${country}* — ${delivery}\n💰 *Gesamtbetrag zur Zahlung:* ${total}\n\nBitte zahlen Sie und senden Sie einen Screenshot hier im Chat.`,
 paymentReminder: "⚠️ Ohne Zahlungsnachweis ist Ihre Bestellung ungültig. Bitte senden Sie den Screenshot der Zahlung hier im Chat."
 
@@ -117,10 +118,11 @@ paymentReminder: "⚠️ Ohne Zahlungsnachweis ist Ihre Bestellung ungültig. Bi
     errorLatinAddress: "❌ Please use only Latin letters and numbers in the address.",
     errorEmail: "❌ Invalid email address.",
     errorPhone: "❌ Invalid phone format. Example: +441234567890",
-    paypalMsg: (price, id) =>
-      `🔗 [${price} € → PayPal](https://www.paypal.com/paypalme/JuliiAron/${price})\n\nPlease pay and send a screenshot.\n🆔 Order ID: ${id}`,
-    sepaMsg: (price, id) =>
-      `🏦 SEPA Transfer\nRecipient: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nAmount: ${price} €\nPurpose: Julii & Aron Order ${price}\n\nPlease pay and send a screenshot.\n🆔 Order ID: ${id}`,
+    paypalMsg: (price, country, delivery, total) =>
+      `💳 *Payment via PayPal*\n\n🛍 Perfume set — ${price} €\n🚚 Delivery to: *${country}* — ${delivery} €\n💰 Total: *${total} €*\n\n` +
+      `🔗 [Pay now](https://www.paypal.com/paypalme/JuliiAron/${total})\n\nPlease send a screenshot after payment.`,
+    sepaMsg: (price, country, delivery, total) =>
+      `🏦 *SEPA Transfer*\nRecipient: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\n\n🛍 Perfume set — ${price} €\n🚚 Delivery to: *${country}* — ${delivery} €\n💰 Total: *${total} €*\n\nPlease send a screenshot after payment.`,
     orderNotFound: "⚠️ We couldn't find your active order.",
     paymentSent: "✅ Thank you! Your payment confirmation has been sent.",
     paymentConfirmed: "✅ Your payment has been confirmed. Please wait for the tracking number.",
@@ -161,7 +163,7 @@ askStreet: "Please enter your street, house number and apartment:",
 errorLatinCountry: "❌ Please use only Latin letters for the country name.",
 errorLatinCity: "❌ Please use only Latin letters and numbers for city and postal code.",
 errorLatinStreet: "❌ Please use only Latin letters and numbers for the address.",
-paymentSummary: (country, delivery, total) =>
+orderSummary: (country, delivery, total) =>
   `💎 Your order: *Promotional Perfume Set — €63*\n📦 Delivery to: *${country}* — ${delivery}\n💰 *Total to pay:* ${total}\n\nPlease make the payment and send the screenshot here in chat.`,
 paymentReminder: "⚠️ Without payment confirmation, your order is not valid. Please send the payment screenshot in this chat."
 
@@ -181,11 +183,11 @@ paymentReminder: "⚠️ Without payment confirmation, your order is not valid. 
     errorLatinAddress: "❌ Пожалуйста, используйте только латинские буквы и цифры в адресе.",
     errorEmail: "❌ Неверный email.",
     errorPhone: "❌ Неверный формат телефона. Пример: +49123456789",
-    paypalMsg: (price, id) =>
-      `🔗 [${price} € → PayPal](https://www.paypal.com/paypalme/JuliiAron/${price})\n\nПожалуйста, оплатите и отправьте скриншот.\n🆔 Номер заказа: ${id}`,
-    sepaMsg: (price, id) =>
-      `🏦 SEPA-перевод\nПолучатель: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\nСумма: ${price} €\nНазначение: Julii & Aron Bestellung ${price}\n\nПожалуйста, оплатите и отправьте скриншот.\n🆔 Номер заказа: ${id}`,
-    orderNotFound: "⚠️ У нас нет вашего активного заказа.",
+    paypalMsg: (price, country, delivery, total) =>
+      `💳 *Оплата через PayPal*\n\n🛍 Набор ароматов — ${price} €\n🚚 Доставка в: *${country}* — ${delivery} €\n💰 Итого к оплате: *${total} €*\n\n` +
+      `🔗 [Оплатить сейчас](https://www.paypal.com/paypalme/JuliiAron/${total})\n\nПосле оплаты отправьте скриншот сюда в чат.`,
+    sepaMsg: (price, country, delivery, total) =>
+      `🏦 *SEPA-перевод*\nПолучатель: Iuliia Troshina\nIBAN: DE77 7505 0000 0027 9627 45\nBIC: BYLADEM1RBG\n\n🛍 Набор ароматов — ${price} €\n🚚 Доставка в: *${country}* — ${delivery} €\n💰 Итого к оплате: *${total} €*\n\nПосле оплаты отправьте скриншот сюда в чат.`,
     paymentSent: "✅ Спасибо! Ваше подтверждение отправлено администратору.",
     paymentConfirmed: "✅ Ваша оплата подтверждена. Ожидайте трек-номер.",
 
@@ -223,7 +225,7 @@ askStreet: "Введите улицу, дом и квартиру:",
 errorLatinCountry: "❌ Используйте только латинские буквы в названии страны.",
 errorLatinCity: "❌ Используйте только латинские буквы и цифры в названии города и индексе.",
 errorLatinStreet: "❌ Используйте только латинские буквы и цифры в адресе.",
-paymentSummary: (country, delivery, total) =>
+orderSummary: (country, delivery, total) =>
   `💎 Ваш заказ: *Акционный набор ароматов — 63 €*\n📦 Доставка в: *${country}* — ${delivery}\n💰 *К оплате:* ${total}\n\nПожалуйста, оплатите и отправьте скриншот сюда в чат.`,
 paymentReminder: "⚠️ Без подтверждения оплаты заказ недействителен. Отправьте скриншот платежа в этот чат."
 
