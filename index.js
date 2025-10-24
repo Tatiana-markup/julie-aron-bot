@@ -343,14 +343,13 @@ case 'phone':
 
   // --- Повідомлення з підсумком ---
   await ctx.reply(
-    formTranslations[lang].orderSummary(
-      order.data.price,
-      order.data.country,
-      deliveryCost,
-      order.data.total
-    ),
-    { parse_mode: 'Markdown' }
-  );
+  formTranslations[lang].orderSummary(
+    order.data.country,
+    deliveryCost,
+    order.data.total
+  ),
+  { parse_mode: 'Markdown' }
+);
 
   // --- Кнопки оплати ---
   await ctx.reply(formTranslations[lang].askPayment, Markup.inlineKeyboard([
