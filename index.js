@@ -418,7 +418,18 @@ bot.on('photo', async (ctx) => {
 
   const photoId = ctx.message.photo.at(-1).file_id;
   await ctx.telegram.sendPhoto(ADMIN_ID, photoId, {
-    caption: `🆔 Заказ: ${orderId}\n👤 ${order.data.name}\n🏠 ${order.data.address}\n✉️ ${order.data.email}\n📱 ${order.data.phone}\n💰 ${order.data.price}€\n💳 ${order.data.payment}`,
+    caption:
+  `🆔 Заказ: ${orderId}\n` +
+  `👤 ${order.data.name}\n` +
+  `🏠 ${order.data.country}, ${order.data.city}\n` +
+  `📬 ${order.data.street}\n` +
+  `✉️ ${order.data.email}\n` +
+  `📱 ${order.data.phone}\n` +
+  `💰 Товар: ${order.data.price}€\n` +
+  `🚚 Доставка: ${order.data.deliveryCost}€\n` +
+  `🧾 Итого: ${order.data.total}€\n` +
+  `💳 ${order.data.payment}`,
+
     reply_markup: { inline_keyboard: [[{ text: "✅ Подтвердить оплату", callback_data: `confirm_${orderId}` }]] }
   });
 
@@ -442,8 +453,18 @@ bot.action('admin_orders', async (ctx) => {
   if (ctx.from.id !== ADMIN_ID) return;
   if (!orders.length) return ctx.reply("ℹ️ Заказов нет");
   const list = orders.map(o =>
-    `🆔 ${o.id}\n👤 ${o.data.name}\n🏠 ${o.data.address}\n📱 ${o.data.phone}\n✉️ ${o.data.email}\n💳 ${o.data.payment}\n💰 ${o.data.price}€\n📦 ${o.data.paymentConfirmed ? "✅ Оплачено" : "⏳ Не оплачено"}`
-  ).join("\n───────────────\n");
+  `🆔 ${o.id}\n` +
+  `👤 ${o.data.name}\n` +
+  `🏠 ${o.data.country}, ${o.data.city}\n` +
+  `📬 ${o.data.street}\n` +
+  `✉️ ${o.data.email}\n` +
+  `📱 ${o.data.phone}\n` +
+  `💰 Товар: ${o.data.price}€\n` +
+  `🚚 Доставка: ${o.data.deliveryCost}€\n` +
+  `🧾 Итого: ${o.data.total}€\n` +
+  `💳 ${o.data.payment}\n` +
+  `📦 ${o.data.paymentConfirmed ? "✅ Оплачено" : "⏳ Не оплачено"}`
+).join("\n───────────────\n");
   await ctx.reply(`📋 Список заказов:\n\n${list}\n\n📊 Остаток: ${stock}`);
 });
 
