@@ -330,6 +330,8 @@ case 'phone':
   if (!/^\+[0-9]{8,15}$/.test(text)) return ctx.reply(formTranslations[lang].errorPhone);
   order.data.phone = text.trim();
   order.step = 'payment';
+  order.data.paymentConfirmed = false;
+  orders.push(order);
 
   // --- Розрахунок доставки ---
   let deliveryCost = 15;
@@ -363,7 +365,7 @@ case 'phone':
     if (pending) {
       await bot.telegram.sendMessage(userId, formTranslations[lang].paymentReminder);
     }
-  }, 30 * 60 * 1000);
+  }, 15 * 60 * 1000);
   return;
 }
 });
