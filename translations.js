@@ -99,7 +99,7 @@ errorLatinCountry: "❌ Bitte verwenden Sie nur lateinische Buchstaben im Lände
 errorLatinCity: "❌ Bitte verwenden Sie nur lateinische Buchstaben und Zahlen in Stadt und PLZ.",
 errorLatinStreet: "❌ Bitte verwenden Sie nur lateinische Buchstaben und Zahlen in der Adresse.",
 orderSummary: (country, delivery, total) =>
-  `💎 Ihre Bestellung: *Aktionsset Parfums — 63 €*\n📦 Lieferung nach: *${country}* — ${delivery}\n💰 *Gesamtbetrag zur Zahlung:* ${total}\n\nBitte zahlen Sie und senden Sie einen Screenshot hier im Chat.`,
+  `💎 Ihre Bestellung: *Aktionsset Parfums — 63 €*\n📦 Lieferung nach: *${country}* — ${delivery}€\n💰 *Gesamtbetrag zur Zahlung:* ${total}€\n\nBitte zahlen Sie und senden Sie einen Screenshot hier im Chat.`,
 paymentReminder: "⚠️ Ohne Zahlungsnachweis ist Ihre Bestellung ungültig. Bitte senden Sie den Screenshot der Zahlung hier im Chat."
 
   },
@@ -164,7 +164,7 @@ errorLatinCountry: "❌ Please use only Latin letters for the country name.",
 errorLatinCity: "❌ Please use only Latin letters and numbers for city and postal code.",
 errorLatinStreet: "❌ Please use only Latin letters and numbers for the address.",
 orderSummary: (country, delivery, total) =>
-  `💎 Your order: *Promotional Perfume Set — €63*\n📦 Delivery to: *${country}* — ${delivery}\n💰 *Total to pay:* ${total}\n\nPlease make the payment and send the screenshot here in chat.`,
+  `💎 Your order: *Promotional Perfume Set — €63*\n📦 Delivery to: *${country}* — ${delivery}€\n💰 *Total to pay:* ${total}€\n\nPlease make the payment and send the screenshot here in chat.`,
 paymentReminder: "⚠️ Without payment confirmation, your order is not valid. Please send the payment screenshot in this chat."
 
   },
@@ -226,7 +226,7 @@ errorLatinCountry: "❌ Используйте только латинские �
 errorLatinCity: "❌ Используйте только латинские буквы и цифры в названии города и индексе.",
 errorLatinStreet: "❌ Используйте только латинские буквы и цифры в адресе.",
 orderSummary: (country, delivery, total) =>
-  `💎 Ваш заказ: *Акционный набор ароматов — 63 €*\n📦 Доставка в: *${country}* — ${delivery}\n💰 *К оплате:* ${total}\n\nПожалуйста, оплатите и отправьте скриншот сюда в чат.`,
+  `💎 Ваш заказ: *Акционный набор ароматов — 63 €*\n📦 Доставка в: *${country}* — ${delivery}€\n💰 *К оплате:* ${total}€\n\nПожалуйста, оплатите и отправьте скриншот сюда в чат.`,
 paymentReminder: "⚠️ Без подтверждения оплаты заказ недействителен. Отправьте скриншот платежа в этот чат."
 
   }
